@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "name": "milan-internet-2013-11-lstm-train-only-per-cell-minmax-pilot",
+  "decision_stage": "post_raw_smoke_pre_full_training",
+  "question": "같은 중앙 900셀·target·모델·seed·5 epoch에서 Train-only 셀별 Min-Max scaling 하나만 바꾸면 raw LSTM의 Validation 과소학습이 실질적으로 줄어드는가?",
+  "base_smoke": {
+    "config": "configs/lstm_upc_smoke_milan_nov2013.json",
+    "config_sha256": "b8054f3a95d4fa6a1b33dff353f676242f5ae14c2b7e051c694afa5af985a2ea",
+    "input_npz_sha256": "efe0dc5d6aa3ff558914f34ae7021e67266c402b8a88cf50426cc7caf244572e",
+    "evaluation_report": "data/processed/lstm_upc_smoke/evaluation_report.json",
+    "evaluation_report_sha256": "d2c97e5c370e8acf1d5274b8a8ec1981b2a57bcd466f4edd5d110384c98be153",
+    "required_status": "pass"
+  },
+  "scaler_source": {
+    "central_manifest": "data/processed/central_900_manifest.json",
+    "central_traffic": "data/processed/central_900_traffic.npy",
+    "expected_central_manifest_sha256": "58883a446147aa14e1bfdde5727e0dbc967d374ffa64357d6bf8def4156159c7",
+    "expected_central_traffic_sha256": "380d3d7f894113509d9cc1e73d13c274d2a45d27b39bc1ca3bd8a109cd511cb5"
+  },
+  "scaling": {
+    "name": "per_cell_train_only_minmax",
+    "only_changed_factor": "model_input_and_target_scaling",
+    "fit_partition": "train",
+    "fit_start_index_inclusive": 0,
+    "fit_end_index_exclusive": 2880,
+    "fit_values": "existing_preprocessed_filled_traffic",
+    "formula": "scaled=(value-cell_train_min)/(cell_train_max-cell_train_min)",
+    "inverse_formula": "value=scaled*(cell_train_max-cell_train_min)+cell_train_min",
+    "dtype": "float32",
+    "clip_transform": false,
+    "clip_inverse_prediction": false,
+    "zero_range_policy": "reject",
+    "expected_zero_range_cell_count": 0,
+    "roundtrip_max_absolute_error": 0.001
+  },
+  "selection": {
+    "spatial_scope": "same_all_central_900_as_base_smoke",
+    "splits": [
+      "train",
+      "validation"
+    ],
+    "targets_per_cell_per_split": 64,
+    "expected_central_cell_count": 900,
+    "expected_cluster_counts": {
+      "0": 611,
+      "1": 289
+    },
+    "test_policy": "withheld_not_bundled_or_evaluated"
+  },
+  "raw_validation_reference": {
+    "split": "validation",
+    "target_policy": "all_targets",
+    "aggregation": "micro",
+    "primary_model": "lstm_upc_off",
+    "metrics": {
+      "persistence_selected_smoke": {
+        "mae": 32.2166927947,
+        "wape": 0.116521760244
+      },
+      "lstm_upc_off": {
+        "mae": 236.285288592,
+        "wape": 0.854599754295
+      },
+      "lstm_upc_on": {
+        "mae": 247.777719229,
+        "wape": 0.896165729294
+      }
+    }
+  },
+  "decision_rule": {
+    "metric": "validation_all_targets_micro_mae",
+    "primary_model": "lstm_upc_off",
+    "material_improvement_fraction": 0.2,
+    "material_improvement_max_mae": 189.0282308736,
+    "material_improvement_outcome": "adopt_as_full_training_scaling_candidate",
+    "positive_but_below_material_outcome": "inconclusive_run_epoch_control_before_full_training",
+    "no_improvement_outcome": "reject_candidate_and_review_optimization_or_output_contract",
+    "test_metric_used_for_decision": false,
+    "persistence_used_as_pass_gate": false,
+    "upc_on_off_difference_used_for_scaling_decision": false
+  },
+  "outputs": {
+    "input_npz": "data/interim/lstm_scaling_pilot/input.npz",
+    "input_manifest": "data/interim/lstm_scaling_pilot/input_manifest.json",
+    "architecture_report": "data/processed/lstm_scaling_pilot/architecture_report.json",
+    "evaluation_report": "data/processed/lstm_scaling_pilot/evaluation_report.json",
+    "predictions_npz": "data/processed/lstm_scaling_pilot/predictions.npz",
+    "per_cell_metrics_csv": "data/processed/lstm_scaling_pilot/per_cell_metrics.csv",
+    "run_manifest": "data/processed/lstm_scaling_pilot/manifest.json"
+  }
+}
