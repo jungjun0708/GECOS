@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "name": "milan-internet-2013-11-lstm-upc-pipeline-smoke",
+  "forecast_config": "configs/naive_baselines_milan_nov2013.json",
+  "upc_training_policy_config": "configs/upc_training_policy_milan_nov2013.json",
+  "upc_protocol": "train_only",
+  "seed": 42,
+  "architecture": {
+    "name": "paper_parameter_reconstruction",
+    "input_length": 8,
+    "lstm_units": [
+      64,
+      128,
+      64
+    ],
+    "return_sequences": [
+      true,
+      true,
+      false
+    ],
+    "dropout_placement": "after_each_lstm",
+    "output_units": 1,
+    "expected_parameter_count": 165185,
+    "author_implementation_confirmed": false,
+    "evidence": "논문 Table III의 LSTM 165,185 parameters를 정확히 재구성하는 최소 stacked-LSTM 후보이며 원저자 구조로 확인된 것은 아님"
+  },
+  "smoke": {
+    "selection": {
+      "spatial_scope": "all_central_900_in_manifest_order",
+      "splits": [
+        "train",
+        "validation",
+        "test"
+      ],
+      "targets_per_cell_per_split": 64,
+      "target_policy": "each_split_target_indices_evenly_spaced_including_endpoints",
+      "expected_central_cell_count": 900,
+      "expected_cluster_counts": {
+        "0": 611,
+        "1": 289
+      }
+    },
+    "training": {
+      "optimizer": "adam",
+      "learning_rate": 0.001,
+      "loss": "mae",
+      "batch_size": 512,
+      "max_epochs": 5,
+      "dropout": 0.05,
+      "shuffle": false,
+      "input_scaling": "none_raw_traffic",
+      "validation_role": "monitor_only_fixed_epoch_no_early_stopping",
+      "test_role": "evaluate_once_after_training"
+    },
+    "pass_criteria": {
+      "require_exact_parameter_count": true,
+      "require_finite_values": true,
+      "require_train_mae_decrease": true,
+      "require_exact_cluster_recombination": true,
+      "require_better_than_persistence": false
+    }
+  },
+  "outputs": {
+    "input_npz": "data/interim/lstm_upc_smoke/input.npz",
+    "input_manifest": "data/interim/lstm_upc_smoke/input_manifest.json",
+    "architecture_report": "data/processed/lstm_upc_smoke/architecture_report.json",
+    "evaluation_report": "data/processed/lstm_upc_smoke/evaluation_report.json",
+    "predictions_npz": "data/processed/lstm_upc_smoke/predictions.npz",
+    "per_cell_metrics_csv": "data/processed/lstm_upc_smoke/per_cell_metrics.csv",
+    "run_manifest": "data/processed/lstm_upc_smoke/manifest.json"
+  }
+}
