@@ -1,0 +1,4 @@
+# Python 3.12 전처리 전용 환경
+numpy==2.5.2
+pyarrow==25.0.1
+tzdata==2026.3

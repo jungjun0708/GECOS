@@ -116,7 +116,9 @@
 - 상태: `결정 완료`
 - 근거: 원본에는 활동 열 공란과 셀-시점 조합 자체의 누락이 모두 존재한다.
 - 영향: traffic 합계, peak hour, MAPE가 달라질 수 있다.
-- 방침: 두 경우 모두 traffic 0으로 처리하되 missing mask와 각각의 개수를 보존한다.
+- 방침: 두 경우 모두 traffic 0으로 처리한다. 셀-시점 행 자체가 없으면
+  `missing_mask`, 행은 있지만 모든 Internet 값이 공란이면 `internet_null_mask`로
+  기록하고 활동 열별 공란 행 수도 manifest에 보존한다.
 
 ### GAP-DATA-02: scaling 대상과 적합 기간이 불명확함
 

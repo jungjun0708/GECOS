@@ -26,3 +26,11 @@ Telecom Italia, *Telecommunications - SMS, Call, Internet - MI*
 전처리를 시작하기 전에
 [원본 데이터 manifest와 무결성 검사](../docs/02-raw-data-integrity.md)를 실행한다.
 검증 보고서는 `interim/raw_integrity_report.json`에 생성되며 Git에는 포함하지 않는다.
+
+## 전처리
+
+원본 검증을 통과한 뒤
+[Internet traffic 전처리](../docs/03-internet-preprocessing.md)를 실행한다. 전처리는
+국가코드별 Internet 값을 셀과 10분 시점 단위로 합산하고 `processed/`에 학습용
+행렬과 결측 mask를 생성한다. 모든 산출물은 Git에서 제외되며 `manifest.json`으로
+입력, 설정, 통계와 SHA-256을 추적한다.
