@@ -210,6 +210,20 @@
   최솟값은 각각 약 `-0.00659`, `-0.03244`였다. clipping 없이 그대로 평가했으며
   저자의 출력 계약이 확인되지 않았으므로 gap은 유지한다.
 
+### GAP-LSTM-03: scaling 후 early stopping 지표 단위가 공개되지 않음
+
+- 상태: `본 학습 구현 가정 사전 등록·저자 설정은 외부 정보 필요`
+- 논문: 모델 입력·target scaling 여부와 early stopping의 감시 지표 단위를
+  공개하지 않는다.
+- 영향: 셀별 scaling 공간의 MAE는 셀마다 비슷한 가중치를 주지만, 원래 traffic
+  단위 micro MAE는 range가 큰 셀의 오차 비중이 커진다. 어떤 값을 감시하는지에 따라
+  best epoch가 달라질 수 있다.
+- 방침: 본 LSTM 학습은 실제 최적화 loss와 같은 셀별 scaled Validation MAE인
+  `val_loss`를 감시한다. 원래 traffic 단위 MAE·MAPE·WAPE는 역변환 후 보고하되
+  best epoch 선택에는 사용하지 않는다. 결과를 본 뒤 감시 단위를 바꾸지 않으며,
+  다른 단위는 별도 사전 등록 실험으로만 비교한다.
+- 상세 기록: [중앙 900셀 LSTM 전체 Train·Validation 학습](13-lstm-full-training.md)
+
 ## 5. 데이터와 표본 생성
 
 ### GAP-DATA-01: 공란과 완전히 없는 셀-시점의 의미

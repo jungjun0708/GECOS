@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "name": "milan-internet-2013-11-lstm-full-train-validation",
+  "decision_stage": "post_scaling_pilot_pre_test_evaluation",
+  "question": "Train-only 셀별 Min-Max와 전체 Train target을 사용할 때 중앙 900셀 LSTM의 UPC off/on Validation 결과를 3개 seed에서 재현 가능하게 만들 수 있는가?",
+  "sources": {
+    "scaling_pilot_config": "configs/lstm_scaling_pilot_milan_nov2013.json",
+    "scaling_pilot_config_sha256": "5f36be98b4a0f940a9dc127fdcbcb9f7515bf3b4366d94f57d21bffb1e03ff20",
+    "scaling_pilot_evaluation": "data/processed/lstm_scaling_pilot/evaluation_report.json",
+    "scaling_pilot_evaluation_sha256": "96069a20813e1abd5e65648bad958cf8ea6226455bd410ae5d3196d791cc9195",
+    "required_scaling_outcome": "adopt_as_full_training_scaling_candidate",
+    "forecast_config": "configs/naive_baselines_milan_nov2013.json",
+    "forecast_config_sha256": "b7a0aae4d216d5bc0474e41b03b4f8416282a664303fa6e81328c1d1e67cafcb",
+    "central_manifest": "data/processed/central_900_manifest.json",
+    "central_manifest_sha256": "58883a446147aa14e1bfdde5727e0dbc967d374ffa64357d6bf8def4156159c7",
+    "central_traffic": "data/processed/central_900_traffic.npy",
+    "central_traffic_sha256": "380d3d7f894113509d9cc1e73d13c274d2a45d27b39bc1ca3bd8a109cd511cb5",
+    "central_missing_mask": "data/processed/central_900_missing_mask.npy",
+    "central_missing_mask_sha256": "116d91ca8b6cc642b9944b30c097e0a2bd402e16703cf617efe1e6ee7b4c6fcd",
+    "central_internet_null_mask": "data/processed/central_900_internet_null_mask.npy",
+    "central_internet_null_mask_sha256": "84e05bf06729247b19d0027dd4eb7df4fa0b8a75677ecb70e2939cbf72c855b6",
+    "timestamps_ms": "data/processed/timestamps_ms.npy",
+    "timestamps_ms_sha256": "0005bf43a0c2c3dad033bfcfca8466ad23f28b83869c5403efae256454a31e4d",
+    "upc_training_policy": "data/processed/upc/training_policy.json",
+    "upc_training_policy_sha256": "bff2a8aa4206ad292f6b10c2b4ada55fd69eedfc88a0af2befb23a04cf12b6d2",
+    "central_memberships": "data/processed/upc/final_clusters/central_900_memberships.csv",
+    "central_memberships_sha256": "9cb60b83013ec953256a9e182e51f52ffddf9ea2aa5ae473740f7f413b5086fa",
+    "baseline_summary": "data/processed/baselines/summary.json",
+    "baseline_summary_sha256": "aa6e1a20cb058fb33bd923abcd422fb759d4c7eab4db9b4d2993b37865cf905f"
+  },
+  "data": {
+    "spatial_scope": "central_900_approximate_all_cells",
+    "expected_cell_count": 900,
+    "input_length": 8,
+    "horizon": 1,
+    "bundle_global_start_index_inclusive": 0,
+    "bundle_global_end_index_exclusive": 3600,
+    "splits": {
+      "train": {
+        "target_start_index_inclusive": 8,
+        "target_end_index_exclusive": 2880,
+        "targets_per_cell": 2872,
+        "samples": 2584800
+      },
+      "validation": {
+        "target_start_index_inclusive": 2880,
+        "target_end_index_exclusive": 3600,
+        "targets_per_cell": 720,
+        "samples": 648000
+      }
+    },
+    "test_policy": "excluded_from_bundle_training_jobs_and_validation_aggregation",
+    "test_target_start_index_inclusive": 3600,
+    "known_prior_test_exposure": "raw_fixed_epoch_pipeline_smoke_only",
+    "future_test_claim": "locked_final_evaluation_with_prior_raw_smoke_exposure_not_pristine"
+  },
+  "scaling": {
+    "name": "per_cell_train_only_minmax",
+    "fit_start_index_inclusive": 0,
+    "fit_end_index_exclusive": 2880,
+    "fit_values": "existing_preprocessed_filled_traffic",
+    "dtype": "float32",
+    "clip_transform": false,
+    "clip_inverse_prediction": false,
+    "zero_range_policy": "reject",
+    "expected_zero_range_cell_count": 0,
+    "roundtrip_max_absolute_error": 0.001
+  },
+  "upc": {
+    "protocol": "train_only",
+    "conditions": [
+      "upc_off",
+      "upc_on_cluster_0",
+      "upc_on_cluster_1"
+    ],
+    "expected_cluster_counts": {
+      "0": 611,
+      "1": 289
+    },
+    "prediction_recombination": "scatter_to_exact_central_manifest_order"
+  },
+  "architecture": {
+    "name": "paper_parameter_reconstruction",
+    "lstm_units": [
+      64,
+      128,
+      64
+    ],
+    "return_sequences": [
+      true,
+      true,
+      false
+    ],
+    "dropout_placement": "after_each_lstm",
+    "output_units": 1,
+    "expected_parameter_count": 165185,
+    "author_implementation_confirmed": false
+  },
+  "training": {
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "expected_job_count": 9,
+    "optimizer": "adam",
+    "learning_rate": 0.001,
+    "loss": "mae",
+    "loss_domain": "cellwise_scaled",
+    "batch_size": 512,
+    "max_epochs": 1000,
+    "dropout": 0.05,
+    "shuffle": false,
+    "early_stopping": {
+      "monitor": "val_loss",
+      "monitor_domain": "cellwise_scaled_mae",
+      "mode": "min",
+      "patience": 5,
+      "min_delta": 0.0,
+      "restore_best_weights": true,
+      "start_from_epoch": 0
+    },
+    "checkpoint_format": "numpy_weights_npz",
+    "checkpoint_selection": "best_scaled_validation_mae",
+    "maximum_wall_clock_seconds_per_job": 7200,
+    "wall_clock_limit_outcome": "incomplete_not_a_result"
+  },
+  "validation_evaluation": {
+    "evaluated_split": "validation",
+    "target_policies": [
+      "all_targets",
+      "observed_targets_only"
+    ],
+    "metrics": [
+      "mae",
+      "mape_ratio",
+      "mape_percent",
+      "wape"
+    ],
+    "aggregations": [
+      "micro",
+      "cell_macro"
+    ],
+    "report_unit": "original_traffic_after_cellwise_inverse_transform",
+    "mape_positive_targets_only": true,
+    "seed_summary": "individual_mean_and_sample_standard_deviation_ddof_1",
+    "performance_used_as_pipeline_gate": false,
+    "upc_condition_used_for_exclusion": false
+  },
+  "resource_policy": {
+    "local_tensorflow_training": false,
+    "local_peak_rss_limit_bytes": 268435456,
+    "required_colab_gpu_name_contains": "T4",
+    "colab_peak_rss_soft_limit_bytes": 4294967296,
+    "job_execution": "independent_seed_and_condition_jobs",
+    "rerun_policy": "rerun_only_same_immutable_job_after_infrastructure_failure"
+  },
+  "pass_criteria": {
+    "require_clean_source_git": true,
+    "require_source_checksums": true,
+    "require_test_absent": true,
+    "require_exact_parameter_count": true,
+    "require_all_nine_jobs": true,
+    "require_finite_history_weights_and_predictions": true,
+    "require_best_weights_restored": true,
+    "require_exact_cluster_recombination": true,
+    "require_finite_validation_metrics": true,
+    "require_better_than_persistence": false,
+    "require_upc_improvement": false
+  },
+  "outputs": {
+    "input_npz": "data/interim/lstm_full_training/train_validation_input.npz",
+    "input_manifest": "data/interim/lstm_full_training/train_validation_input_manifest.json",
+    "job_descriptors_dir": "data/interim/lstm_full_training/job_descriptors",
+    "jobs_root": "data/processed/lstm_full_training/jobs",
+    "training_jobs_csv": "data/processed/lstm_full_training/training_jobs.csv",
+    "validation_report": "data/processed/lstm_full_training/validation_report.json",
+    "validation_predictions_npz": "data/processed/lstm_full_training/validation_predictions.npz",
+    "validation_per_cell_metrics_csv": "data/processed/lstm_full_training/validation_per_cell_metrics.csv",
+    "release_manifest": "data/processed/lstm_full_training/validation_release_manifest.json",
+    "aggregation_manifest": "data/processed/lstm_full_training/aggregation_manifest.json"
+  }
+}
