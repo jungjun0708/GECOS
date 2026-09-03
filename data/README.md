@@ -54,3 +54,11 @@ Telecom Italia, *Telecommunications - SMS, Call, Internet - MI*
 단계는 공식 Grid 좌표로 중앙 30×30을 선택하고 `(900, 4320)` traffic 부분집합과
 두 결측 mask를 생성한다. 결과는 저자의 정확한 ID가 공개되지 않았다는 한계를
 반영해 `central-900-approximate`로 표시한다.
+
+## UPC 초기 그룹
+
+전처리와 중앙 900셀 선택이 끝나면
+[UPC 24개 초기 그룹 생성과 논문 지문 검증](../docs/05-upc-initial-groups.md)을
+실행한다. 결과는 `processed/upc/`에 생성되며 전체 10,000셀, 누수 방지 Train 기간,
+중앙 900셀 membership을 분리해 저장한다. 이 디렉터리도 Git에서 제외되고 출력
+SHA-256과 논문 Fig. 4 비교값은 `processed/upc/manifest.json`에 기록된다.
