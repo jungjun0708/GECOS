@@ -241,11 +241,16 @@ traffic 부분집합을 게시한다.
 
 | 이름 | clustering에 사용하는 기간 | 용도 |
 |---|---|---|
-| `upc_train_only` | Train 20일의 평일 | 주 결과, 정보 누수 방지 |
-| `upc_paper_faithful` | 30일 전체 평일 | 논문 Fig. 4 비교 |
+| `train_only` | Train 20일의 평일 | 주 결과, 정보 누수 방지 |
+| `algorithm1_full_month` | 30일 전체 평일 | 논문 Algorithm 1 민감도 비교 |
 
-주 성능 결과에는 `upc_train_only`를 사용한다. 두 프로토콜의 초기 그룹 수,
+주 성능 결과에는 `train_only`를 사용한다. 두 프로토콜의 초기 그룹 수,
 최종 cluster 크기와 membership 일치율을 함께 기록한다.
+
+Fig. 4와 가까운 완전한 4주 평균-profile 계산은 `figure4_probe`로 분리하며 모델
+입력으로 사용하지 않는다. 사전 등록한 제한 감사 결과 정확 일치는 없었지만, 이
+불일치는 독립 기준선 진행을 막지 않는다. 결정 근거는
+[UPC Fig. 4 불일치 제한 감사](06-upc-fig4-bounded-audit.md)에 기록한다.
 
 ## 10. 모델 계약
 

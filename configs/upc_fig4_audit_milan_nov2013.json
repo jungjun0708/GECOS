@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "name": "milan-internet-2013-11-fig4-bounded-audit",
+  "upc_config": "configs/upc_milan_nov2013.json",
+  "scope_contract": {
+    "pre_registered_before_execution": true,
+    "allow_post_result_variant_expansion": false,
+    "stop_after_declared_variants": true,
+    "rationale": "논문이 모호하게 남긴 기간, 대표 peak, 시간 집계, 정밀도와 결측 정책만 검사하고 그림 숫자에 맞춘 사후 탐색을 막는다.",
+    "analytical_equivalence": "각 시간에 정확히 6개 관측이 있으면 시간 합계와 시간 평균은 양의 상수배 관계여서 argmax가 같으므로 별도 변형으로 중복 실행하지 않는다."
+  },
+  "variants": [
+    {
+      "name": "algorithm1_full_month_sum_daily_mode_f64_zero",
+      "start_local": "2013-11-01T00:00:00",
+      "end_exclusive_local": "2013-12-01T00:00:00",
+      "weekdays_only": true,
+      "hourly_reducer": "sum",
+      "representative_method": "daily_peak_mode",
+      "missing_policy": "zero_filled",
+      "calculation_dtype": "float64"
+    },
+    {
+      "name": "full_month_sum_mean_profile_f64_zero",
+      "start_local": "2013-11-01T00:00:00",
+      "end_exclusive_local": "2013-12-01T00:00:00",
+      "weekdays_only": true,
+      "hourly_reducer": "sum",
+      "representative_method": "mean_hourly_profile",
+      "missing_policy": "zero_filled",
+      "calculation_dtype": "float64"
+    },
+    {
+      "name": "full_month_max_daily_mode_f64_zero",
+      "start_local": "2013-11-01T00:00:00",
+      "end_exclusive_local": "2013-12-01T00:00:00",
+      "weekdays_only": true,
+      "hourly_reducer": "max",
+      "representative_method": "daily_peak_mode",
+      "missing_policy": "zero_filled",
+      "calculation_dtype": "float64"
+    },
+    {
+      "name": "full_month_max_mean_profile_f64_zero",
+      "start_local": "2013-11-01T00:00:00",
+      "end_exclusive_local": "2013-12-01T00:00:00",
+      "weekdays_only": true,
+      "hourly_reducer": "max",
+      "representative_method": "mean_hourly_profile",
+      "missing_policy": "zero_filled",
+      "calculation_dtype": "float64"
+    },
+    {
+      "name": "complete_weeks_sum_daily_mode_f64_zero",
+      "start_local": "2013-11-04T00:00:00",
+      "end_exclusive_local": "2013-11-30T00:00:00",
+      "weekdays_only": true,
+      "hourly_reducer": "sum",
+      "representative_method": "daily_peak_mode",
+      "missing_policy": "zero_filled",
+      "calculation_dtype": "float64"
+    },
+    {
+      "name": "figure4_probe_complete_weeks_sum_mean_profile_f64_zero",
+      "start_local": "2013-11-04T00:00:00",
+      "end_exclusive_local": "2013-11-30T00:00:00",
+      "weekdays_only": true,
+      "hourly_reducer": "sum",
+      "representative_method": "mean_hourly_profile",
+      "missing_policy": "zero_filled",
+      "calculation_dtype": "float64"
+    },
+    {
+      "name": "complete_weeks_max_daily_mode_f64_zero",
+      "start_local": "2013-11-04T00:00:00",
+      "end_exclusive_local": "2013-11-30T00:00:00",
+      "weekdays_only": true,
+      "hourly_reducer": "max",
+      "representative_method": "daily_peak_mode",
+      "missing_policy": "zero_filled",
+      "calculation_dtype": "float64"
+    },
+    {
+      "name": "complete_weeks_max_mean_profile_f64_zero",
+      "start_local": "2013-11-04T00:00:00",
+      "end_exclusive_local": "2013-11-30T00:00:00",
+      "weekdays_only": true,
+      "hourly_reducer": "max",
+      "representative_method": "mean_hourly_profile",
+      "missing_policy": "zero_filled",
+      "calculation_dtype": "float64"
+    },
+    {
+      "name": "figure4_probe_complete_weeks_sum_mean_profile_f32_zero",
+      "start_local": "2013-11-04T00:00:00",
+      "end_exclusive_local": "2013-11-30T00:00:00",
+      "weekdays_only": true,
+      "hourly_reducer": "sum",
+      "representative_method": "mean_hourly_profile",
+      "missing_policy": "zero_filled",
+      "calculation_dtype": "float32"
+    },
+    {
+      "name": "figure4_probe_complete_weeks_sum_mean_profile_f64_exclude",
+      "start_local": "2013-11-04T00:00:00",
+      "end_exclusive_local": "2013-11-30T00:00:00",
+      "weekdays_only": true,
+      "hourly_reducer": "sum",
+      "representative_method": "mean_hourly_profile",
+      "missing_policy": "exclude_flagged_and_renormalize",
+      "calculation_dtype": "float64"
+    }
+  ],
+  "decision": {
+    "primary_model_protocol": "train_only",
+    "sensitivity_model_protocol": "algorithm1_full_month",
+    "diagnostic_variant": "figure4_probe_complete_weeks_sum_mean_profile_f64_zero",
+    "diagnostic_eligible_for_model_input": false,
+    "exact_figure4_match_required_for_baselines": false,
+    "exact_figure4_match_required_for_reproduction_claim": true
+  },
+  "outputs": {
+    "report_json": "data/processed/upc/audits/fig4_audit.json",
+    "comparison_csv": "data/processed/upc/audits/fig4_audit_comparison.csv",
+    "manifest": "data/processed/upc/audits/fig4_audit_manifest.json"
+  }
+}

@@ -62,3 +62,8 @@ Telecom Italia, *Telecommunications - SMS, Call, Internet - MI*
 실행한다. 결과는 `processed/upc/`에 생성되며 전체 10,000셀, 누수 방지 Train 기간,
 중앙 900셀 membership을 분리해 저장한다. 이 디렉터리도 Git에서 제외되고 출력
 SHA-256과 논문 Fig. 4 비교값은 `processed/upc/manifest.json`에 기록된다.
+
+Fig. 4 불일치에 대한 사전 등록 감사는
+[UPC Fig. 4 불일치 제한 감사](../docs/06-upc-fig4-bounded-audit.md)의 절차로
+실행한다. 결과 JSON·CSV와 manifest는 `processed/upc/audits/`에 저장되며 역시
+Git에서 제외된다. 이 감사는 진단 membership 파일을 만들지 않는다.
