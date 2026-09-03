@@ -158,6 +158,7 @@ NumPy 행렬은 cell ID가 행, 전체 timestamp가 열이다. Parquet은 날짜
 
 ## 9. 다음 단계
 
-이 데이터 계약을 통과한 `traffic.npy`, `cell_ids.npy`, `timestamps_ms.npy`를 사용해
-Milano Grid의 기하학적 중앙 30×30에 해당하는 900개 cell ID를 생성하고 지도에서
-선택 영역을 확인한다.
+이 데이터 계약을 통과한 `traffic.npy`, `cell_ids.npy`, `timestamps_ms.npy`를 사용한
+[중앙 900셀 공간 선택과 검증](04-central-900-selection.md)을 완료했다. 다음 단계는
+평일 peak hour 기반 UPC 초기 24개 그룹을 구현하고 논문의 그룹 크기 fingerprint와
+비교하는 것이다.

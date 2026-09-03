@@ -182,11 +182,16 @@ Milano Grid 데이터(<https://doi.org/10.7910/DVN/QJWLFU>)의 각 셀 centroid�
 - 0-based 행 범위: `[35, 65)`
 - 0-based 열 범위: `[35, 65)`
 - 기대 셀 수: 900
-- 결과 ID 파일: `central_900.csv`
+- 결과 ID 파일: `data/processed/central_900.csv`
 
 논문이 정확한 ID 목록을 공개하지 않았으므로 이 범위의 결과는
 `central-900-approximate`로 표시한다. 추후 원저자 또는 선행 연구의 정확한
 목록을 확인하면 기존 목록을 덮어쓰지 않고 별도 프로토콜로 추가한다.
+
+구현과 실제 검증 결과는
+[중앙 900셀 공간 선택과 검증](04-central-900-selection.md)에 기록한다. 좌표로 복원한
+100×100 위치와 cell ID 공식이 전체 10,000개에서 일치한 뒤에만 `(900, 4320)`
+traffic 부분집합을 게시한다.
 
 ## 9. UPC 계약
 

@@ -213,6 +213,9 @@ cython_debug/
 /tensorboard/
 /artifacts/models/
 
+# Atomic temporary map file left only if a process is forcibly interrupted
+/docs/assets/.*.partial
+
 *.keras
 *.h5
 *.ckpt
