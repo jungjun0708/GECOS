@@ -16,6 +16,7 @@ Urban Mobile Data Prediction with Geospatial Clustering and Dual Residual Learni
 
 - [핵심 재현 범위와 실험 계약](docs/00-reproduction-scope.md)
 - [재현 가능성 차이 및 처리 방침](docs/01-reproducibility-gaps.md)
+- [원본 데이터 manifest와 무결성 검사](docs/02-raw-data-integrity.md)
 - [데이터 디렉터리와 출처](data/README.md)
 
 현재 단계에서는 실험 전에 적용할 재현 규칙과 알려진 불확실성을 문서로 고정했다.
