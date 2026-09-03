@@ -174,7 +174,40 @@
 - 방침: 최대 1,000 epoch, patience 5, validation MAE 감시, 최적 가중치 복원을
   기본값으로 사용하고 모두 config에 노출한다.
 
-## 4. 데이터와 표본 생성
+## 4. LSTM 기준선
+
+### GAP-LSTM-01: LSTM layer별 구조가 공개되지 않음
+
+- 상태: `parameter 재구성 및 pipeline smoke 완료·외부 정보 필요`
+- 논문: Table III에 LSTM parameter 수 `165,185`를 제시하지만 layer 수, unit 수,
+  sequence 반환 방식과 dropout 위치를 공개하지 않는다.
+- 영향: 같은 “LSTM” 이름을 사용해도 표현력, 최적화와 UPC 효과가 달라질 수 있다.
+- 방침: Keras 산술로 Table III를 정확히 만족하는
+  `LSTM(64) → LSTM(128) → LSTM(64) → Dense(1)` 후보를
+  `paper_parameter_reconstruction`으로 분리한다. 원저자 구현이라고 부르지 않으며,
+  다른 후보를 결과에 맞춰 탐색하지 않는다.
+- 구현 결과: 실제 `model.count_params()`가 `165,185`, 출력 shape가 `(batch, 1)`이고
+  11개 trainable variable 모두에 유한하고 0이 아닌 gradient가 도달했다. 중앙
+  900셀의 UPC off/on pipeline도 끝까지 통과했지만 이는 구조의 계산 건전성만
+  확인한다.
+- 상세 기록: [중앙 900셀 LSTM·UPC Colab T4 pipeline smoke](11-lstm-upc-smoke.md)
+
+### GAP-LSTM-02: 출력 activation과 음수 예측 처리 방식이 없음
+
+- 상태: `첫 진단 방침 결정·저자 설정은 외부 정보 필요`
+- 논문: 비음수 traffic 예측에 사용하는 출력 activation 또는 음수 예측 후처리를
+  공개하지 않는다.
+- 영향: 선형 출력, ReLU/softplus와 0 clipping은 MAE·MAPE·WAPE 및 gradient를
+  다르게 만든다.
+- 방침: 최초 재구성 후보는 parameter 수를 바꾸지 않는 선형 Dense를 사용한다.
+  smoke 결과를 본 뒤 clipping하지 않고 원시 예측을 그대로 평가하며 분할별 음수
+  개수를 기록한다. 비음수 출력 변형은 향후 별도 config로 사전 등록하고 기존 결과를
+  대체하지 않는다.
+- 구현 결과: cluster 1 모델에서 Train 1개와 Validation 4개의 작은 음수 예측이
+  발생했고 Test에는 없었다. 지표 함수의 기준선 비음수 기본 계약은 유지하되 LSTM
+  호출만 명시적으로 음수 예측을 허용했다.
+
+## 5. 데이터와 표본 생성
 
 ### GAP-DATA-01: 공란과 완전히 없는 셀-시점의 의미
 
@@ -241,7 +274,7 @@
   `rolling_one_step_with_observed_history`로 고정한다. 어떤 경우에도 target 시각 이후의
   값은 사용하지 않는다. 재귀 예측은 필요할 때 별도 실험 이름과 config로 추가한다.
 
-## 5. 평가와 보고
+## 6. 평가와 보고
 
 ### GAP-METRIC-01: MAPE 단위가 일관되지 않음
 
@@ -295,7 +328,7 @@
 - 방침: 핵심 성능 검증에는 사용하지 않는다. 예시 그림을 만들면 선택한 cell ID를
   config와 파일명에 명시한다.
 
-## 6. 코드와 라이선스
+## 7. 코드와 라이선스
 
 ### GAP-REPO-01: 공개 저장소에 소프트웨어 라이선스가 없음
 
@@ -306,13 +339,14 @@
 
 ### GAP-REPO-02: 실행 환경이 고정되지 않음
 
-- 상태: `최초 RCTL smoke 환경 결정 완료`
+- 상태: `RCTL 및 LSTM smoke 환경 결정 완료`
 - 근거: requirements, Python/TensorFlow/Keras/CUDA 버전이 공개되지 않았다.
 - 영향: 최신 Keras에서 저장 형식과 일부 API 동작이 달라질 수 있다.
 - 방침: 첫 동작 구현에서 실제 Colab runtime을 기록하고 호환되는 버전을 lock한다.
   모든 결과에 환경 정보를 저장한다.
 - 구현 결과: Tesla T4 15,360MiB, Python 3.13.15, NumPy 2.1.3, TensorFlow 2.20.0,
-  tf.keras 3.13.2 조합에서 두 번 실행해 같은 핵심 학습 수치를 얻었다.
+  tf.keras 3.13.2 조합에서 RCTL과 LSTM smoke를 실행했다. 최종 LSTM smoke는 같은
+  코드로 두 번 실행해 구조·평가·예측·셀별 지표 파일의 SHA-256이 모두 같았다.
   `requirements/model.txt`와 실행 manifest에 이 환경을 기록했다. Colab 이미지가
   바뀌면 기존 lock을 조용히 갱신하지 않고 새 환경에서 smoke를 다시 수행한다.
 
@@ -324,7 +358,7 @@
 - 방침: 원시 데이터, 파생 대용량 데이터와 논문 PDF를 Git에서 제외한다. 문서에는
   원출처 DOI와 라이선스를 기록한다.
 
-## 7. gap 관리 규칙
+## 8. gap 관리 규칙
 
 1. 구현 선택이 바뀌면 관련 gap의 기존 내용을 삭제하지 않고 변경 사유를 기록한다.
 2. 논문과 다른 설정은 config 이름과 결과 표에 표시한다.

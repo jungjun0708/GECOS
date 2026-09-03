@@ -25,12 +25,17 @@ Urban Mobile Data Prediction with Geospatial Clustering and Dual Residual Learni
 - [RCTL 아키텍처 계약과 Colab T4 과적합 smoke](docs/08-rctl-architecture-smoke.md)
 - [UPC PCC 기반 최종 2개 클러스터](docs/09-upc-pcc-final-clusters.md)
 - [UPC 순서 민감도 검토와 프로토콜별 학습 정책](docs/10-upc-order-training-policy.md)
+- [중앙 900셀 LSTM·UPC Colab T4 pipeline smoke](docs/11-lstm-upc-smoke.md)
 - [데이터 디렉터리와 출처](data/README.md)
 
 현재 원본 무결성 검사, 메모리 제한 전처리, 중앙 900셀 공간 선택, UPC 초기 그룹과
 Fig. 4 제한 감사, 공통 예측 계약과 학습 없는 두 기준선, RCTL 구조 감사와 실제
 Train 부분집합의 Colab T4 과적합 smoke, UPC PCC 기반 최종 2개 클러스터와
-프로토콜별 학습 정책까지 구현했다. UPC의 명시
+프로토콜별 학습 정책, 중앙 900셀 LSTM의 UPC 적용 전·후 pipeline smoke까지
+구현했다. LSTM smoke는 Table III의 `165,185` parameter를 정확히 재구성하고
+900셀 cluster 예측의 원래 순서 재결합과 두 번의 결정적 T4 실행을 검증했다. 다만
+raw traffic·고정 5 epoch 결과는 Persistence보다 크게 나빠 성능 결과가 아니라
+scaling과 본 학습 계약을 정하기 위한 과소학습 진단으로 보존한다. UPC의 명시
 알고리즘과 Fig. 4 그룹 수가 정확히 일치하지 않는 문제는 결과에 맞춰 숨은 규칙을
 조정하지 않고 `GAP-UPC-06`으로 추적한다. 제한 감사 후 주 실험은 `train_only`,
 Algorithm 1 민감도 실험은 `algorithm1_full_month`로 고정했으며 Fig. 4 probe는 모델

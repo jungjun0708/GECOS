@@ -107,3 +107,23 @@ Persistence와 daily seasonal naive의 요약, Test 셀별 지표와 manifest는
 
 이 파일들은 모두 재생성 가능한 파생 데이터라 Git에서 제외한다. smoke 결과는
 Validation/Test 성능이 아니며, 일회성 모델 checkpoint도 보존하지 않는다.
+
+## LSTM·UPC pipeline smoke 입력과 결과
+
+[중앙 900셀 LSTM·UPC Colab T4 pipeline smoke](../docs/11-lstm-upc-smoke.md)는
+중앙 900셀을 모두 유지하고 각 Train/Validation/Test 분할에서 셀당 64개 target을
+등간격으로 선택한다. 로컬에서는 필요한 window만 추출하고, UPC 미적용 모델 하나와
+`train_only` cluster별 모델 둘의 학습은 Colab T4에서 수행한다.
+
+- `interim/lstm_upc_smoke/input.npz`: 900셀의 선택 window·target·Persistence·mask
+- `interim/lstm_upc_smoke/input_manifest.json`: 선택 규칙, clean Git commit과 입력·배열 checksum
+- `interim/lstm_upc_smoke/colab_bundle.zip`: 최소 Colab 업로드 bundle
+- `processed/lstm_upc_smoke/architecture_report.json`: `165,185` parameter 구조 감사
+- `processed/lstm_upc_smoke/evaluation_report.json`: 세 모델의 학습·재결합·지표 결과
+- `processed/lstm_upc_smoke/predictions.npz`: UPC off/on 및 Persistence 예측
+- `processed/lstm_upc_smoke/per_cell_metrics.csv`: Test 셀별 MAE/MAPE/WAPE
+- `processed/lstm_upc_smoke/manifest.json`: Git provenance, Colab 환경과 출력 checksum
+
+위 파일과 Colab 결과 ZIP은 모두 재생성 가능한 파생 산출물이므로 Git에서 제외한다.
+고정 5 epoch smoke는 checkpoint를 저장하지 않으며, 결과는 논문 성능표가 아니라
+pipeline의 구조·학습·재결합 검증으로만 사용한다.

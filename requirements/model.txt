@@ -1,4 +1,4 @@
-# Google Colab T4 runtime에서 2026-09-03 확인한 RCTL smoke 환경
+# Google Colab T4 runtime에서 2026-09-03 확인한 RCTL 및 LSTM smoke 환경
 # Python 3.13.15, tf.keras 3.13.2 (TensorFlow 패키지에 포함)
 numpy==2.1.3
 tensorflow==2.20.0

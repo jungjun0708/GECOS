@@ -11,7 +11,7 @@
 - 논문 DOI: <https://doi.org/10.1109/TNSM.2025.3599168>
 - 원저자 공개 코드: <https://github.com/Superint-Lab/GECOS>
 - 데이터: <https://doi.org/10.7910/DVN/EGZHFV>
-- 문서 상태: 실행 계약 v1 (UPC 주 학습 프로토콜 허용 정책 확정)
+- 문서 상태: 실행 계약 v1 (중앙 900셀 LSTM·UPC pipeline smoke 완료)
 
 이 문서에서 정하지 못한 사항은
 [재현 가능성 차이 및 처리 방침](01-reproducibility-gaps.md)에 등록한다.
@@ -294,6 +294,8 @@ membership을 선택하지 않는다. 설정, 자동 검증과 근거는
 
 early stopping은 validation MAE를 감시하고 최적 가중치를 복원한다. 논문에는
 patience가 공개되지 않았으므로 5를 구현 가정으로 사용하며 config에 노출한다.
+단, 구조와 pipeline만 확인하는 smoke는 별도 config에서 고정 5 epoch와 checkpoint
+미보존을 사용하며 본 학습 성능으로 보고하지 않는다.
 
 저장된 원본 행렬과 첫 paper-oriented 학습은 raw traffic을 사용한다. 별도의
 모델 입력 scaling을 시험할 경우 독립 config와 실험 이름을 사용하고, 원래 결과를
@@ -329,6 +331,20 @@ causality와 gradient 검사를 모두 통과했지만 논문 값 `173,633`과�
 
 UPC를 사용할 때는 cluster마다 독립 모델을 학습하고, 해당 cluster의 셀 window를
 하나의 표본 집합으로 합친다. 입력에 cell ID나 좌표를 추가하지 않는다.
+
+### 10.4 LSTM 재구성 후보와 첫 pipeline smoke
+
+논문 Table III의 LSTM `165,185` parameter를 만족하는
+`64 → 128 → 64 → Dense(1)` stacked-LSTM을
+`paper_parameter_reconstruction`으로 등록한다. 이는 원저자 구조로 확인된 구현이
+아니며 layer별 unit과 출력 activation이 공개될 때까지 `GAP-LSTM-01`과
+`GAP-LSTM-02`를 유지한다.
+
+첫 pipeline smoke는 중앙 900셀 전체와 분할별 64개 결정적 target을 사용한다.
+UPC 미적용 모델 하나와 `train_only` cluster별 모델 둘을 각각 고정 5 epoch 학습하고,
+성능 우열이 아니라 정확한 parameter 수, 유한한 학습, Train MAE 감소와 900셀 예측
+재결합을 필수 gate로 사용한다. 구현과 결과는
+[중앙 900셀 LSTM·UPC Colab T4 pipeline smoke](11-lstm-upc-smoke.md)에 기록한다.
 
 ## 11. 평가 계약
 
@@ -378,9 +394,11 @@ MAPE를 계산할 때 제외된 `y=0` 표본 수와 비율을 결과에 함께 �
 7. PCC 순차 배정의 미공개 순서에 대한 제한 설계 검토
    ([정책 결정 및 자동 검증](10-upc-order-training-policy.md))
 8. 중앙 900셀 LSTM 학습·평가 smoke와 UPC on/off 재결합 검증
-9. 중앙 900셀 LSTM/RCTL, UPC on/off 3-seed 비교
-10. RCC 최소 ablation
-11. 최적 구성의 10,000셀 단일 확장 실험
+   ([구현 및 실제 결과](11-lstm-upc-smoke.md))
+9. Train-only 모델 scaling의 제한 pilot과 본 학습 전처리 계약 확정
+10. 중앙 900셀 LSTM/RCTL, UPC on/off 3-seed 비교
+11. RCC 최소 ablation
+12. 최적 구성의 10,000셀 단일 확장 실험
 
 다음 조건에서는 뒤 단계로 넘어가지 않는다.
 

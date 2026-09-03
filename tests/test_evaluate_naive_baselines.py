@@ -41,6 +41,35 @@ def sha256(path: Path) -> str:
 
 
 class NaiveMetricTests(unittest.TestCase):
+    def test_negative_model_prediction_requires_explicit_opt_in(self) -> None:
+        targets = np.array([[1]], dtype=np.float32)
+        predictions = np.array([[-1]], dtype=np.float32)
+        eligible = np.ones((1, 1), dtype=bool)
+        no_missing = np.zeros((1, 1), dtype=bool)
+
+        with self.assertRaisesRegex(UpcInitialGroupError, "prediction"):
+            compute_per_cell_metric_parts(
+                targets,
+                predictions,
+                eligible,
+                no_missing,
+                no_missing,
+                no_missing,
+                no_missing,
+            )
+
+        parts = compute_per_cell_metric_parts(
+            targets,
+            predictions,
+            eligible,
+            no_missing,
+            no_missing,
+            no_missing,
+            no_missing,
+            require_nonnegative_predictions=False,
+        )
+        self.assertEqual(parts["absolute_error_sum"].tolist(), [2.0])
+
     def test_micro_cell_macro_missing_and_zero_target_contract(self) -> None:
         targets = np.array([[0, 2, 4], [1, 3, 5]], dtype=np.float32)
         predictions = np.array([[1, 1, 6], [1, 5, 0]], dtype=np.float32)
