@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "name": "milan-internet-2013-11-naive-baselines",
+  "upc_config": "configs/upc_milan_nov2013.json",
+  "forecast": {
+    "input_length": 8,
+    "horizon": 1,
+    "evaluation_mode": "rolling_one_step_with_observed_history",
+    "partitions": {
+      "train": {
+        "start_local": "2013-11-01T00:00:00",
+        "end_exclusive_local": "2013-11-21T00:00:00",
+        "expected_targets_per_cell": 2872
+      },
+      "validation": {
+        "start_local": "2013-11-21T00:00:00",
+        "end_exclusive_local": "2013-11-26T00:00:00",
+        "expected_targets_per_cell": 720
+      },
+      "test": {
+        "start_local": "2013-11-26T00:00:00",
+        "end_exclusive_local": "2013-12-01T00:00:00",
+        "expected_targets_per_cell": 720
+      }
+    },
+    "auxiliary_splits": {
+      "paper_holdout_10d": {
+        "start_local": "2013-11-21T00:00:00",
+        "end_exclusive_local": "2013-12-01T00:00:00",
+        "expected_targets_per_cell": 1440
+      }
+    },
+    "evaluated_splits": [
+      "validation",
+      "test",
+      "paper_holdout_10d"
+    ],
+    "primary_split": "test",
+    "paper_comparison_split": "paper_holdout_10d",
+    "expected_total_targets_per_cell": 4312
+  },
+  "baselines": [
+    {
+      "name": "persistence",
+      "lag_steps": 1,
+      "description": "직전 10분의 관측값을 다음 값으로 예측"
+    },
+    {
+      "name": "daily_seasonal_naive",
+      "lag_steps": 144,
+      "description": "24시간 전 같은 시각의 관측값을 다음 값으로 예측"
+    }
+  ],
+  "scopes": [
+    "central_900",
+    "all_10000"
+  ],
+  "metrics": {
+    "primary_target_policy": "all_targets",
+    "target_policies": [
+      "all_targets",
+      "observed_targets_only"
+    ],
+    "mape_positive_targets_only": true,
+    "report_mape_ratio_and_percent": true,
+    "report_micro_and_cell_macro": true,
+    "per_cell_output_splits": [
+      "test"
+    ]
+  },
+  "execution": {
+    "cell_chunk_size": 256
+  },
+  "outputs": {
+    "summary_json": "data/processed/baselines/summary.json",
+    "per_cell_metrics_csv": "data/processed/baselines/per_cell_metrics.csv",
+    "manifest": "data/processed/baselines/manifest.json"
+  }
+}

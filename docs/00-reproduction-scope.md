@@ -11,7 +11,7 @@
 - 논문 DOI: <https://doi.org/10.1109/TNSM.2025.3599168>
 - 원저자 공개 코드: <https://github.com/Superint-Lab/GECOS>
 - 데이터: <https://doi.org/10.7910/DVN/EGZHFV>
-- 문서 상태: 구현 전 계약 v1
+- 문서 상태: 실행 계약 v1 (학습 없는 기준선 단계 구현 완료)
 
 이 문서에서 정하지 못한 사항은
 [재현 가능성 차이 및 처리 방침](01-reproducibility-gaps.md)에 등록한다.
@@ -339,6 +339,7 @@ MAPE를 계산할 때 제외된 `y=0` 표본 수와 비율을 결과에 함께 �
 2. 중앙 900셀 목록 생성 및 지도 확인
 3. 24개 UPC 초기 그룹과 논문 fingerprint 비교
 4. Persistence와 daily seasonal naive 계산
+   ([구현 및 실제 결과](07-naive-baselines.md))
 5. 10~50셀 RCTL shape 및 overfit smoke test
 6. 중앙 900셀 LSTM/RCTL, UPC on/off 비교
 7. RCC 최소 ablation

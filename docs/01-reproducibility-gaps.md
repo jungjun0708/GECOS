@@ -143,6 +143,9 @@
 - 방침: 두 경우 모두 traffic 0으로 처리한다. 셀-시점 행 자체가 없으면
   `missing_mask`, 행은 있지만 모든 Internet 값이 공란이면 `internet_null_mask`로
   기록하고 활동 열별 공란 행 수도 manifest에 보존한다.
+- 기준선 구현: 채운 0을 유지하는 `all_targets`를 주 계약으로 사용하고, 두 mask가
+  표시된 target을 제외하는 `observed_targets_only`를 함께 출력한다. 과거 lag의 mask는
+  예측을 제외하는 데 사용하지 않고 유형별 참조 횟수를 별도로 보고한다.
 
 ### GAP-DATA-02: scaling 대상과 적합 기간이 불명확함
 
@@ -161,6 +164,9 @@
   sequence에서 어느 값을 target으로 삼는지 명시하지 않는다.
 - 영향: 현재 값을 복원하는 문제와 다음 시점을 예측하는 문제가 혼동될 수 있다.
 - 방침: 과거 8개 값을 입력으로 사용해 다음 값을 예측하며 셀당 4,312개 표본을 만든다.
+- 구현 상태: target local timestamp로 표본을 배정하고 각 input index가 target보다
+  과거인지 검사하는 공통 계약과 합성 테스트를 구현했다. 실제 경계와 결과는
+  [예측 표본 계약과 학습 없는 기준선](07-naive-baselines.md)에 기록한다.
 
 ### GAP-DATA-04: validation/test 경계가 없음
 
@@ -169,6 +175,8 @@
 - 영향: early stopping과 최종 성능에 같은 데이터가 사용될 수 있다.
 - 방침: 주 결과는 20일 Train, 5일 Validation, 5일 Test로 분리한다. 뒤 10일 전체
   지표는 논문 비교용 보조값으로만 표시한다.
+- 구현 상태: 셀당 Train `2,872`, Validation `720`, Test `720`개 target과 뒤 10일
+  `1,440`개 보조 target을 config와 코드에서 검증한다.
 
 ### GAP-DATA-05: 중앙 900셀 ID가 공개되지 않음
 
@@ -182,6 +190,16 @@
   [중앙 900셀 공간 선택과 검증](04-central-900-selection.md)에 기록한다. 구현은
   완료됐지만 저자의 정확한 ID 목록은 여전히 공개되지 않아 gap 상태는 유지한다.
 
+### GAP-DATA-06: 평가 구간의 과거 관측 갱신 방식이 없음
+
+- 상태: `결정 완료`
+- 논문: one-step 예측을 사용하지만 Validation/Test 안에서 새 실제값을 다음 예측의
+  과거 입력으로 갱신하는지, 첫 입력 이후 재귀 예측하는지 명시하지 않는다.
+- 영향: rolling one-step과 multi-step recursive 예측은 난이도와 오차가 크게 다르다.
+- 방침: 주 결과는 매 10분 실제 과거값을 사용할 수 있는
+  `rolling_one_step_with_observed_history`로 고정한다. 어떤 경우에도 target 시각 이후의
+  값은 사용하지 않는다. 재귀 예측은 필요할 때 별도 실험 이름과 config로 추가한다.
+
 ## 5. 평가와 보고
 
 ### GAP-METRIC-01: MAPE 단위가 일관되지 않음
@@ -191,6 +209,7 @@
 - 논문 표: `0.1000`처럼 비율로 보이는 값
 - 영향: 같은 결과가 0.1 또는 10%로 다르게 읽힐 수 있다.
 - 방침: MAPE ratio와 MAPE percent를 별도 열로 동시에 출력한다.
+- 구현 상태: 기준선 요약과 셀별 CSV에 두 단위를 함께 기록한다.
 
 ### GAP-METRIC-02: MAPE의 0 target 처리 방식이 없음
 
@@ -198,6 +217,8 @@
 - 영향: 0으로 나누거나 작은 값이 전체 평균을 지배할 수 있다.
 - 방침: `y > 0` 표본만으로 MAPE를 계산하고 제외된 표본 수와 비율을 보고한다.
   WAPE를 보조 지표로 함께 사용한다.
+- 구현 상태: 기준선 결과에 positive target 수와 제외된 0 target 수를 함께 기록하고
+  합성 수식 테스트로 고정했다.
 
 ### GAP-METRIC-03: 평균 방식이 불명확함
 
@@ -205,6 +226,8 @@
 - 영향: 전체 표본 micro average와 셀별 macro average가 서로 다른 결론을 낼 수 있다.
 - 방침: 논문 비교용 micro average와 공간적 편차 확인용 cell-macro average를 모두
   출력하고 열 이름에 집계 방식을 포함한다.
+- 구현 상태: micro, 명시적 cell-macro와 셀별 사분위 분포를 기준선 결과에 함께
+  출력한다.
 
 ### GAP-METRIC-04: 99% 신뢰구간의 계산법이 없음
 
