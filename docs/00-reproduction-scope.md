@@ -11,7 +11,7 @@
 - 논문 DOI: <https://doi.org/10.1109/TNSM.2025.3599168>
 - 원저자 공개 코드: <https://github.com/Superint-Lab/GECOS>
 - 데이터: <https://doi.org/10.7910/DVN/EGZHFV>
-- 문서 상태: 실행 계약 v1 (학습 없는 기준선 단계 구현 완료)
+- 문서 상태: 실행 계약 v1 (RCTL 구조 및 과적합 smoke 단계 구현 완료)
 
 이 문서에서 정하지 못한 사항은
 [재현 가능성 차이 및 처리 방침](01-reproducibility-gaps.md)에 등록한다.
@@ -296,6 +296,13 @@ patience가 공개되지 않았으므로 5를 구현 가정으로 사용하며 c
 - 공개 `main.py` 동작은 `public_reference` 변형으로 분리한다.
 - parameter count가 맞지 않으면 수치에 맞춰 임의로 층을 바꾸지 않고 차이를 기록한다.
 
+첫 구조 감사에서 논문 Fig. 2 해석형은 kernel 4, `2^i` dilation과
+`Concatenate`를 사용해 `236,657`개, 공개 코드형은 kernel 3, `2*i` dilation과
+`Add`를 사용해 `173,665`개 parameter로 확인됐다. 두 모델은 출력, residual shape,
+causality와 gradient 검사를 모두 통과했지만 논문 값 `173,633`과는 일치하지 않았다.
+결과를 본 뒤 구조를 바꾸지 않고 상세 근거와 Colab smoke 결과를
+[RCTL 아키텍처 계약과 Colab T4 과적합 smoke](08-rctl-architecture-smoke.md)에 기록한다.
+
 UPC를 사용할 때는 cluster마다 독립 모델을 학습하고, 해당 cluster의 셀 window를
 하나의 표본 집합으로 합친다. 입력에 cell ID나 좌표를 추가하지 않는다.
 
@@ -340,10 +347,12 @@ MAPE를 계산할 때 제외된 `y=0` 표본 수와 비율을 결과에 함께 �
 3. 24개 UPC 초기 그룹과 논문 fingerprint 비교
 4. Persistence와 daily seasonal naive 계산
    ([구현 및 실제 결과](07-naive-baselines.md))
-5. 10~50셀 RCTL shape 및 overfit smoke test
-6. 중앙 900셀 LSTM/RCTL, UPC on/off 비교
-7. RCC 최소 ablation
-8. 최적 구성의 10,000셀 단일 확장 실험
+5. 16셀 RCTL shape, causality 및 overfit smoke test
+   ([구현 및 실제 결과](08-rctl-architecture-smoke.md))
+6. UPC 초기 그룹을 PCC로 최종 `N=2` cluster에 병합
+7. 중앙 900셀 LSTM/RCTL, UPC on/off 비교
+8. RCC 최소 ablation
+9. 최적 구성의 10,000셀 단일 확장 실험
 
 다음 조건에서는 뒤 단계로 넘어가지 않는다.
 
@@ -352,6 +361,11 @@ MAPE를 계산할 때 제외된 `y=0` 표본 수와 비율을 결과에 함께 �
 - UPC 초기 그룹 합계가 10,000이 아님
 - 모델이 작은 표본을 의도적으로 overfit하지 못함
 - 실행 metadata가 누락됨
+
+RCTL parameter 수가 논문 표와 다르다는 사실만으로 smoke를 중단하지는 않는다.
+shape, causality, gradient와 과적합 통과 여부는 구현 건전성 검사이고, parameter
+불일치는 별도의 재현 gap이기 때문이다. 단, 모델 이름에서 `paper_interpretation`과
+`public_reference`를 생략한 성능 실험은 허용하지 않는다.
 
 ## 13. 완료 정의
 

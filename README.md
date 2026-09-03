@@ -22,14 +22,17 @@ Urban Mobile Data Prediction with Geospatial Clustering and Dual Residual Learni
 - [UPC 24개 초기 그룹 생성과 논문 지문 검증](docs/05-upc-initial-groups.md)
 - [UPC Fig. 4 불일치 제한 감사와 후속 프로토콜 결정](docs/06-upc-fig4-bounded-audit.md)
 - [예측 표본 계약과 학습 없는 기준선](docs/07-naive-baselines.md)
+- [RCTL 아키텍처 계약과 Colab T4 과적합 smoke](docs/08-rctl-architecture-smoke.md)
 - [데이터 디렉터리와 출처](data/README.md)
 
 현재 원본 무결성 검사, 메모리 제한 전처리, 중앙 900셀 공간 선택, UPC 초기 그룹과
-Fig. 4 제한 감사, 공통 예측 계약과 학습 없는 두 기준선까지 구현했다. UPC의 명시
+Fig. 4 제한 감사, 공통 예측 계약과 학습 없는 두 기준선, RCTL 구조 감사와 실제
+Train 부분집합의 Colab T4 과적합 smoke까지 구현했다. UPC의 명시
 알고리즘과 Fig. 4 그룹 수가 정확히 일치하지 않는 문제는 결과에 맞춰 숨은 규칙을
 조정하지 않고 `GAP-UPC-06`으로 추적한다. 제한 감사 후 주 실험은 `train_only`,
 Algorithm 1 민감도 실험은 `algorithm1_full_month`로 고정했으며 Fig. 4 probe는 모델
 입력으로 사용하지 않는다. 기준선은 엄격한 20/5/5 시간 분할에서 Persistence가
 일간 계절성 naive보다 강함을 확인했다. 각 단계는 입력·출력 checksum과 합성 테스트로
 검증하며, 논문에서 공개하지 않은 중앙 셀 목록은 `central-900-approximate`
-프로토콜로 명시한다.
+프로토콜로 명시한다. 논문 그림 해석형 RCTL의 parameter 수는 논문 표와 일치하지
+않아 공개 코드형과 분리하고 `GAP-RCTL-01`부터 `GAP-RCTL-05`로 추적한다.

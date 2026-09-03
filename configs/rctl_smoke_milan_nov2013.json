@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "name": "milan-internet-2013-11-rctl-overfit-smoke",
+  "forecast_config": "configs/naive_baselines_milan_nov2013.json",
+  "seed": 42,
+  "architecture": {
+    "input_length": 8,
+    "channels": [
+      16,
+      32,
+      64,
+      64,
+      32,
+      16
+    ],
+    "variants": {
+      "paper_interpretation": {
+        "kernel_size": 4,
+        "dilations": [
+          1,
+          2,
+          4,
+          8,
+          16,
+          32
+        ],
+        "tcn_shortcut_merge": "concatenate",
+        "rcc1": "project_block_input_then_add_after_lstm",
+        "rcc2_routes": {
+          "3": 2,
+          "4": 1,
+          "5": 0
+        },
+        "final_input_shortcut": true,
+        "expected_parameter_count": 173633,
+        "evidence": "논문 Fig. 2, Table I, Table III, Appendix Fig. 12를 함께 해석한 주 구현"
+      },
+      "public_reference": {
+        "kernel_size": 3,
+        "dilations": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          10
+        ],
+        "tcn_shortcut_merge": "add",
+        "rcc1": "project_block_input_then_add_after_lstm",
+        "rcc2_routes": {
+          "2": 2,
+          "3": 2,
+          "4": 1,
+          "5": 0
+        },
+        "final_input_shortcut": true,
+        "expected_parameter_count": null,
+        "evidence": "원저자 공개 main.py의 RCTLModel.build_model을 동작 기준으로 전사"
+      }
+    }
+  },
+  "smoke": {
+    "selected_variant": "paper_interpretation",
+    "selection": {
+      "central_grid_side": 4,
+      "windows_per_cell": 64,
+      "cell_policy": "central_30x30_grid_evenly_spaced_4x4",
+      "target_policy": "train_target_indices_evenly_spaced"
+    },
+    "training": {
+      "optimizer": "adam",
+      "learning_rate": 0.001,
+      "loss": "mae",
+      "batch_size": 512,
+      "max_epochs": 200,
+      "dropout": 0.05,
+      "shuffle": false,
+      "input_scaling": "none_raw_traffic"
+    },
+    "pass_criteria": {
+      "loss_reduction_basis": "prefit_eval_mae_to_final_eval_mae",
+      "minimum_loss_reduction_fraction": 0.8,
+      "require_better_than_persistence": true,
+      "require_finite_values": true
+    }
+  },
+  "outputs": {
+    "input_npz": "data/interim/rctl_smoke/input.npz",
+    "input_manifest": "data/interim/rctl_smoke/input_manifest.json",
+    "architecture_report": "data/processed/rctl_smoke/architecture_report.json",
+    "overfit_report": "data/processed/rctl_smoke/overfit_report.json",
+    "run_manifest": "data/processed/rctl_smoke/manifest.json",
+    "checkpoint_directory": "checkpoints/rctl_smoke"
+  }
+}

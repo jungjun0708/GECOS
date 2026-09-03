@@ -85,45 +85,62 @@
 
 ### GAP-RCTL-01: `Add`와 `Concatenate` 불일치
 
-- 상태: `검증 필요`
+- 상태: `구현 및 구조 감사 완료·외부 정보 필요`
 - 공개 코드: TCN 출력과 1x1 convolution shortcut을 `Add`로 결합한다.
 - 논문 Fig. 2: 해당 위치를 `Concatenate`로 표시한다.
 - 영향: LSTM 입력 channel 수와 전체 parameter 수가 달라진다.
 - 방침: 논문형을 주 구현으로 사용하고 공개 코드형을 `public_reference`로 분리해
   shape와 parameter 수를 비교한다.
+- 구현 결과: 논문형 `Concatenate`는 LSTM 입력 channel을 두 배로 만들며 전체
+  parameter 수가 공개 코드형보다 크게 증가했다. 두 변형의 tensor shape와 학습
+  경로는 정상이나 어느 쪽이 저자의 최종 실험 그래프인지는 공개 자료만으로 확정할
+  수 없다.
 
 ### GAP-RCTL-02: convolution kernel size 불일치
 
-- 상태: `검증 필요`
+- 상태: `구현 및 구조 감사 완료·외부 정보 필요`
 - 공개 코드: kernel size 3
 - 논문 부록 Fig. 12: filter size 4
 - 영향: receptive field와 parameter 수가 달라진다.
 - 방침: 논문형은 4, 공개 코드형은 3을 사용한다.
+- 구현 결과: 두 값을 별도 config에 고정했고 결과를 본 뒤 변경하지 않았다.
 
 ### GAP-RCTL-03: dilation 규칙 불일치
 
-- 상태: `검증 필요`
+- 상태: `구현 및 구조 감사 완료·외부 정보 필요`
 - 공개 코드: 첫 층 1, 이후 `2*i`이므로 `1, 2, 4, 6, 8, 10`
 - 논문 Table I: `2^i`
 - 영향: 깊은 층의 receptive field가 크게 달라진다.
 - 방침: 논문형은 `1, 2, 4, 8, 16, 32`를 사용한다.
+- 구현 결과: 공개 코드형은 `1, 2, 4, 6, 8, 10`으로 전사했다. 두 변형 모두 뒤쪽
+  원본 입력을 바꿨을 때 앞쪽 12개 causal convolution 출력의 최대 변화가 0이었다.
 
 ### GAP-RCTL-04: RCC 연결 위치의 정확한 연산 순서가 불명확함
 
-- 상태: `검증 필요`
+- 상태: `구현 계약 완료·외부 정보 필요`
 - 근거: 논문 그림과 공개 코드에서 RCC-1/RCC-2 연결 및 중간 1x1 convolution의
   적용 위치가 완전히 일치하지 않는다.
 - 영향: feature shape, gradient 경로와 parameter 수가 달라진다.
 - 방침: 논문 그림을 따라 tensor shape 표를 먼저 작성하고, 블록 단위 테스트를
   통과한 구현만 학습에 사용한다.
+- 구현 결과: 논문형 RCC-2를 B3→B4, B2→B5, B1→B6으로 해석하고 공개 코드형의
+  B3 자기 projection을 별도로 보존했다. 모든 `Add` 입력 shape가 정확히 같고 두
+  모델의 trainable variable 100개 모두에 유한하고 0이 아닌 gradient가 도달했다.
+  이는 현재 해석의 계산 건전성을 보일 뿐 저자의 미공개 연산 순서를 확정하지 않는다.
 
 ### GAP-RCTL-05: 논문 parameter count 173,633의 재구성 여부
 
-- 상태: `검증 필요`
+- 상태: `내부 감사 완료·외부 정보 필요`
 - 근거: 논문 Table III는 RCTL parameter 수를 173,633으로 보고한다.
 - 영향: 구조가 같아 보이더라도 실제 구현이 다를 수 있다.
 - 방침: `model.count_params()`를 회귀 테스트로 추가한다. 일치하지 않으면 숫자에
   맞추기 위한 임의 변경을 하지 않고 각 구현의 실제 수를 결과에 기록한다.
+- 구현 결과: TensorFlow 2.20.0에서 논문 해석형은 `236,657`, 공개 코드형은
+  `173,665`였다. 공개 코드형에서 마지막 입력 1×1 projection의 32개 parameter를
+  산술적으로 빼면 논문 값과 정확히 같지만, 이는 결과 확인 후 발견한 단서일 뿐 해당
+  layer를 제거할 근거가 아니다. 원저자 model summary나 최종 학습 코드가 확인될
+  때까지 해결된 것으로 처리하지 않는다.
+- 상세 기록: [RCTL 아키텍처 계약과 Colab T4 과적합 smoke](08-rctl-architecture-smoke.md)
 
 ### GAP-RCTL-06: early stopping 상세값이 없음
 
@@ -265,11 +282,15 @@
 
 ### GAP-REPO-02: 실행 환경이 고정되지 않음
 
-- 상태: `검증 필요`
+- 상태: `최초 RCTL smoke 환경 결정 완료`
 - 근거: requirements, Python/TensorFlow/Keras/CUDA 버전이 공개되지 않았다.
 - 영향: 최신 Keras에서 저장 형식과 일부 API 동작이 달라질 수 있다.
 - 방침: 첫 동작 구현에서 실제 Colab runtime을 기록하고 호환되는 버전을 lock한다.
   모든 결과에 환경 정보를 저장한다.
+- 구현 결과: Tesla T4 15,360MiB, Python 3.13.15, NumPy 2.1.3, TensorFlow 2.20.0,
+  tf.keras 3.13.2 조합에서 두 번 실행해 같은 핵심 학습 수치를 얻었다.
+  `requirements/model.txt`와 실행 manifest에 이 환경을 기록했다. Colab 이미지가
+  바뀌면 기존 lock을 조용히 갱신하지 않고 새 환경에서 smoke를 다시 수행한다.
 
 ### GAP-REPO-03: 데이터와 논문의 배포 조건
 

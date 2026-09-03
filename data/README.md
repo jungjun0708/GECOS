@@ -75,3 +75,18 @@ Git에서 제외된다. 이 감사는 진단 membership 파일을 만들지 않�
 Persistence와 daily seasonal naive의 요약, Test 셀별 지표와 manifest는
 `processed/baselines/`에 저장된다. 이 결과도 파생 데이터이므로 Git에서 제외하며,
 결정성은 manifest의 출력 SHA-256과 반복 실행으로 확인한다.
+
+## RCTL smoke 입력과 결과
+
+[RCTL 아키텍처 계약과 Colab T4 과적합 smoke](../docs/08-rctl-architecture-smoke.md)는
+전체 배열을 Colab에 올리지 않는다. 로컬에서 전처리 checksum을 먼저 검증하고 중앙
+30×30 격자에 등간격으로 흩어진 16셀, 셀당 Train target 64개만 추출한다.
+
+- `interim/rctl_smoke/input.npz`: `(1024, 8, 1)` 입력과 target, Persistence 값, ID 및 mask
+- `interim/rctl_smoke/input_manifest.json`: 선택 규칙과 입력·배열 checksum
+- `processed/rctl_smoke/architecture_report.json`: 논문형/공개형 구조 감사
+- `processed/rctl_smoke/overfit_report.json`: 일회성 Train 과적합 진단
+- `processed/rctl_smoke/manifest.json`: Colab 환경과 출력 checksum
+
+이 파일들은 모두 재생성 가능한 파생 데이터라 Git에서 제외한다. smoke 결과는
+Validation/Test 성능이 아니며, 일회성 모델 checkpoint도 보존하지 않는다.
