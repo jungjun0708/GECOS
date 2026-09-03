@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "name": "milan-internet-2013-11-upc-pcc-final-clusters",
+  "inputs": {
+    "upstream_upc_config": "configs/upc_milan_nov2013.json",
+    "upstream_upc_config_sha256": "84145d4b2fe50db70746232f79f8650263a72787c6757eb9102a0ef957dcdd9c",
+    "upstream_upc_manifest": "data/processed/upc/manifest.json",
+    "accepted_upstream_status": "diagnostic_mismatch"
+  },
+  "protocol_roles": {
+    "primary_model_protocol": "train_only",
+    "sensitivity_model_protocol": "algorithm1_full_month",
+    "forbidden_model_protocol": "figure4_probe_complete_weeks_mean_profile"
+  },
+  "clustering": {
+    "cluster_count": 2,
+    "theta": 10,
+    "seed_size_rule": "strictly_greater_than_theta",
+    "group_profile": "mean_over_cells_and_weekdays_of_per_cell_scaled_hourly_sum",
+    "pcc_vector_length": 24,
+    "seed_pair_rule": "minimum_pcc",
+    "assignment_score": "unweighted_mean_pcc_to_current_cluster_member_groups",
+    "primary_remaining_group_order": "ascending_group_id",
+    "sensitivity_remaining_group_order": "descending_group_id",
+    "small_nonempty_group_policy": "profile_and_assign_but_exclude_from_seed",
+    "empty_group_policy": "exclude_from_pcc_and_assignment",
+    "canonical_cluster_labels": "ascending_seed_group_id",
+    "tie_break": "lexicographically_smallest_seed_pair_then_smallest_cluster_id",
+    "pcc_tie_tolerance": 1e-12
+  },
+  "paper_diagnostic": {
+    "figure5_first_cluster_group_start_inclusive": 8,
+    "figure5_first_cluster_group_end_inclusive": 18,
+    "role": "diagnostic_only_not_a_tuning_target"
+  },
+  "validation": {
+    "minimum_order_sensitivity_agreement": 0.95,
+    "require_all_cells_assigned_once": true,
+    "require_all_central_cells_assigned_once": true
+  },
+  "execution": {
+    "cell_chunk_size": 256,
+    "multiprocessing": false,
+    "execution_location": "local_wsl_cpu"
+  },
+  "outputs": {
+    "directory": "data/processed/upc/final_clusters"
+  }
+}

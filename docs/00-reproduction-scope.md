@@ -11,7 +11,7 @@
 - 논문 DOI: <https://doi.org/10.1109/TNSM.2025.3599168>
 - 원저자 공개 코드: <https://github.com/Superint-Lab/GECOS>
 - 데이터: <https://doi.org/10.7910/DVN/EGZHFV>
-- 문서 상태: 실행 계약 v1 (RCTL 구조 및 과적합 smoke 단계 구현 완료)
+- 문서 상태: 실행 계약 v1 (UPC PCC 최종 군집 및 순서 민감도 검사 완료)
 
 이 문서에서 정하지 못한 사항은
 [재현 가능성 차이 및 처리 방침](01-reproducibility-gaps.md)에 등록한다.
@@ -237,6 +237,13 @@ traffic 부분집합을 게시한다.
 크기가 작아 seed에서 제외된 그룹도 profile을 계산하여 최종 배정에는 포함한다.
 이 정책은 논문 의사코드에서 불명확한 부분에 대한 명시적 구현 가정이다.
 
+남은 그룹의 반복 순서는 논문에 명시되지 않았으므로 group ID 오름차순을 주 구현,
+내림차순을 사전 등록한 민감도로 사용한다. 실제 결과 `train_only`은 두 순서의
+membership이 100% 같았지만 `algorithm1_full_month`는 label-swap 불변 기준
+50.48%만 같았다. 구현과 결과는
+[UPC PCC 기반 최종 2개 클러스터](09-upc-pcc-final-clusters.md)에 기록하며,
+이 차이는 `GAP-UPC-07`로 추적한다.
+
 ### 9.3 두 가지 UPC 프로토콜
 
 | 이름 | clustering에 사용하는 기간 | 용도 |
@@ -350,15 +357,18 @@ MAPE를 계산할 때 제외된 `y=0` 표본 수와 비율을 결과에 함께 �
 5. 16셀 RCTL shape, causality 및 overfit smoke test
    ([구현 및 실제 결과](08-rctl-architecture-smoke.md))
 6. UPC 초기 그룹을 PCC로 최종 `N=2` cluster에 병합
-7. 중앙 900셀 LSTM/RCTL, UPC on/off 비교
-8. RCC 최소 ablation
-9. 최적 구성의 10,000셀 단일 확장 실험
+   ([구현 및 실제 결과](09-upc-pcc-final-clusters.md))
+7. PCC 순차 배정의 미공개 순서에 대한 제한 설계 검토
+8. 중앙 900셀 LSTM/RCTL, UPC on/off 비교
+9. RCC 최소 ablation
+10. 최적 구성의 10,000셀 단일 확장 실험
 
 다음 조건에서는 뒤 단계로 넘어가지 않는다.
 
 - 데이터 shape, timestamp 또는 checksum이 비결정적임
 - window에 미래 값이 포함되는 테스트가 실패함
 - UPC 초기 그룹 합계가 10,000이 아님
+- UPC 순서 민감도 일치율이 사전 등록한 95%보다 낮은데 처리 방침이 결정되지 않음
 - 모델이 작은 표본을 의도적으로 overfit하지 못함
 - 실행 metadata가 누락됨
 

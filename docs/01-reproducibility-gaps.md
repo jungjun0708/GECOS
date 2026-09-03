@@ -42,6 +42,9 @@
 - 영향: 최종 cluster membership과 크기가 달라질 수 있다.
 - 방침: 작은 그룹은 seed 후보에서는 제외하되 길이 24 profile을 계산하여 최종
   cluster 배정에는 포함한다.
+- 구현 결과: 두 프로토콜 모두 빈 group 2와 4는 제외했다. `train_only`의
+  group 1은 크기가 정확히 10이어서 엄격한 `size > theta` 조건에 따라 seed에서
+  제외됐고, 작은 비어 있지 않은 모든 group은 최종 cluster에 배정됐다.
 
 ### GAP-UPC-04: 그룹 PCC에 사용하는 profile 정의가 불명확함
 
@@ -80,6 +83,24 @@
   확인되기 전까지 gap을 해결된 것으로 처리하지 않는다.
 - 상세 기록: [UPC 24개 초기 그룹 생성과 논문 지문 검증](05-upc-initial-groups.md)
   및 [UPC Fig. 4 불일치 제한 감사](06-upc-fig4-bounded-audit.md)
+
+### GAP-UPC-07: 남은 초기 그룹의 순차 배정 순서가 공개되지 않음
+
+- 상태: `내부 민감도 검사 완료·처리 방침 검토 필요`
+- 논문: seed를 선택한 뒤 `x in H`인 각 나머지 그룹을 현재 cluster member와의 평균
+  PCC가 가장 높은 cluster에 넣지만, `x`의 순서를 명시하지 않는다.
+- 영향: 먼저 들어간 그룹이 다음 그룹의 평균 PCC에 포함되므로 결과가 경로 의존적일
+  수 있다. 동일 profile, PCC와 seed도 반복 순서만으로 membership이 바뀐다.
+- 사전 등록 방침: group ID 오름차순을 주 구현, 내림차순을 한 번의 민감도 검사로
+  사용하고, label-swap 불변 셀 일치율 95% 미만이면 고비용 학습 전 검토한다.
+- 구현 결과: `train_only`은 전체 10,000셀과 중앙 900셀 모두 100% 같았다.
+  `algorithm1_full_month`는 전체 50.48%, 중앙 60.78%만 같아 검토 기준을 통과하지
+  못했다. 오름차순 결과를 유지하며 더 균형적인 내림차순이나 Fig. 5에 가까운 결과를
+  사후 선택하지 않는다.
+- 방침: 추가 순서를 탐색하지 않고, 오름차순 재현 경로 유지·순서 불변 확장 실험의
+  분리·전체 월 모델 보류 여부를 제한 설계 검토에서 먼저 결정한다. 결정 전 manifest는
+  `ready_for_expensive_model_training=false`로 기록한다.
+- 상세 기록: [UPC PCC 기반 최종 2개 클러스터](09-upc-pcc-final-clusters.md)
 
 ## 3. 공개 코드와 RCTL
 
