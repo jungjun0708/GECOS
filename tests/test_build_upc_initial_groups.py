@@ -72,7 +72,7 @@ class UpcTimeAndPeakTests(unittest.TestCase):
         paper = select_protocol_hours(
             axis,
             protocol(
-                "paper_faithful",
+                "algorithm1_full_month",
                 "2013-11-01T00:00:00",
                 "2013-12-01T00:00:00",
             ),
@@ -104,7 +104,7 @@ class UpcTimeAndPeakTests(unittest.TestCase):
         selected = select_protocol_hours(
             axis,
             protocol(
-                "paper_faithful",
+                "algorithm1_full_month",
                 "2013-11-01T00:00:00",
                 "2013-11-02T00:00:00",
             ),
@@ -129,7 +129,7 @@ class UpcTimeAndPeakTests(unittest.TestCase):
         selected = select_protocol_hours(
             axis,
             protocol(
-                "paper_faithful",
+                "algorithm1_full_month",
                 "2013-11-04T00:00:00",
                 "2013-11-06T00:00:00",
             ),
@@ -173,7 +173,7 @@ class UpcTimeAndPeakTests(unittest.TestCase):
         selected = select_protocol_hours(
             axis,
             protocol(
-                "paper_faithful",
+                "algorithm1_full_month",
                 "2013-11-04T00:00:00",
                 "2013-11-06T00:00:00",
             ),
@@ -214,7 +214,7 @@ class UpcTimeAndPeakTests(unittest.TestCase):
         selected = select_protocol_hours(
             axis,
             protocol(
-                "paper_faithful",
+                "algorithm1_full_month",
                 "2013-11-04T00:00:00",
                 "2013-11-07T00:00:00",
             ),
@@ -375,7 +375,7 @@ class UpcPipelineTests(unittest.TestCase):
                 "expected_step_count": len(timestamps),
             },
             "protocols": {
-                "paper_faithful": {
+                "algorithm1_full_month": {
                     "start_local": "2013-11-01T00:00:00",
                     "end_exclusive_local": "2013-11-03T00:00:00",
                     "weekdays_only": True,
@@ -387,7 +387,7 @@ class UpcPipelineTests(unittest.TestCase):
                 },
             },
             "diagnostics": {
-                "figure4_complete_weeks_mean_profile": {
+                "figure4_probe_complete_weeks_mean_profile": {
                     "method": "mean_hourly_profile_then_argmax",
                     "start_local": "2013-11-01T00:00:00",
                     "end_exclusive_local": "2013-11-03T00:00:00",
@@ -400,9 +400,11 @@ class UpcPipelineTests(unittest.TestCase):
             },
             "execution": {"cell_chunk_size": 2},
             "outputs": {
-                "paper_faithful_peak_hours": str(self.outputs / "paper_peak.npy"),
+                "algorithm1_full_month_peak_hours": str(
+                    self.outputs / "algorithm1_peak.npy"
+                ),
                 "train_only_peak_hours": str(self.outputs / "train_peak.npy"),
-                "figure4_diagnostic_peak_hours": str(self.outputs / "figure4_peak.npy"),
+                "figure4_probe_peak_hours": str(self.outputs / "figure4_peak.npy"),
                 "all_cell_memberships_csv": str(self.outputs / "all.csv"),
                 "central_900_memberships_csv": str(self.outputs / "central.csv"),
                 "group_counts_json": str(self.outputs / "counts.json"),
@@ -426,10 +428,14 @@ class UpcPipelineTests(unittest.TestCase):
 
         self.assertTrue(first["paper_fingerprint"]["exact_match"])
         self.assertEqual(first["paper_fingerprint"]["l1_difference"], 0)
-        self.assertTrue(first["figure4_diagnostic"]["exact_match"])
+        self.assertTrue(first["figure4_probe"]["exact_match"])
+        self.assertFalse(first["figure4_probe"]["eligible_for_model_input"])
+        self.assertEqual(
+            first["protocol_roles"]["primary_model_protocol"], "train_only"
+        )
         self.assertEqual(first_hashes, second_hashes)
         np.testing.assert_array_equal(
-            np.load(config.outputs.paper_faithful_peak_hours),
+            np.load(config.outputs.algorithm1_full_month_peak_hours),
             np.array([0, 1, 1, 23], dtype=np.int8),
         )
         with config.outputs.central_900_memberships_csv.open(
@@ -438,14 +444,19 @@ class UpcPipelineTests(unittest.TestCase):
             central_rows = list(csv.DictReader(handle))
         self.assertEqual([row["cell_id"] for row in central_rows], ["1", "4"])
         self.assertEqual(
-            [row["paper_faithful_peak_hour"] for row in central_rows],
+            [row["algorithm1_full_month_peak_hour"] for row in central_rows],
             ["0", "23"],
         )
-        self.assertEqual(first["protocols"]["paper_faithful"]["weekday_count"], 1)
-        self.assertEqual(first["protocols"]["train_only"]["weekday_count"], 1)
-        self.assertEqual(first["protocols"]["paper_faithful"]["missing_pair_count"], 1)
         self.assertEqual(
-            first["protocols"]["paper_faithful"]["internet_all_null_pair_count"],
+            first["protocols"]["algorithm1_full_month"]["weekday_count"], 1
+        )
+        self.assertEqual(first["protocols"]["train_only"]["weekday_count"], 1)
+        self.assertEqual(
+            first["protocols"]["algorithm1_full_month"]["missing_pair_count"],
+            1,
+        )
+        self.assertEqual(
+            first["protocols"]["algorithm1_full_month"]["internet_all_null_pair_count"],
             1,
         )
 

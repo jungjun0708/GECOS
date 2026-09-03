@@ -22,7 +22,7 @@
     "expected_step_count": 4320
   },
   "protocols": {
-    "paper_faithful": {
+    "algorithm1_full_month": {
       "start_local": "2013-11-01T00:00:00",
       "end_exclusive_local": "2013-12-01T00:00:00",
       "weekdays_only": true
@@ -34,7 +34,7 @@
     }
   },
   "diagnostics": {
-    "figure4_complete_weeks_mean_profile": {
+    "figure4_probe_complete_weeks_mean_profile": {
       "method": "mean_hourly_profile_then_argmax",
       "start_local": "2013-11-04T00:00:00",
       "end_exclusive_local": "2013-11-30T00:00:00",
@@ -68,15 +68,15 @@
       129,
       18
     ],
-    "require_exact_paper_fingerprint": true
+    "require_exact_paper_fingerprint": false
   },
   "execution": {
     "cell_chunk_size": 256
   },
   "outputs": {
-    "paper_faithful_peak_hours": "data/processed/upc/paper_faithful_peak_hours.npy",
+    "algorithm1_full_month_peak_hours": "data/processed/upc/algorithm1_full_month_peak_hours.npy",
     "train_only_peak_hours": "data/processed/upc/train_only_peak_hours.npy",
-    "figure4_diagnostic_peak_hours": "data/processed/upc/figure4_diagnostic_peak_hours.npy",
+    "figure4_probe_peak_hours": "data/processed/upc/figure4_probe_peak_hours.npy",
     "all_cell_memberships_csv": "data/processed/upc/all_cell_memberships.csv",
     "central_900_memberships_csv": "data/processed/upc/central_900_memberships.csv",
     "group_counts_json": "data/processed/upc/group_counts.json",

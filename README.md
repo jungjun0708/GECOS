@@ -20,10 +20,13 @@ Urban Mobile Data Prediction with Geospatial Clustering and Dual Residual Learni
 - [Internet traffic 전처리](docs/03-internet-preprocessing.md)
 - [중앙 900셀 공간 선택과 검증](docs/04-central-900-selection.md)
 - [UPC 24개 초기 그룹 생성과 논문 지문 검증](docs/05-upc-initial-groups.md)
+- [UPC Fig. 4 불일치 제한 감사와 후속 프로토콜 결정](docs/06-upc-fig4-bounded-audit.md)
 - [데이터 디렉터리와 출처](data/README.md)
 
-현재 원본 무결성 검사, 메모리 제한 전처리, 중앙 900셀 공간 선택과 UPC 초기 그룹
-검증까지 구현했다. UPC의 명시 알고리즘과 Fig. 4 그룹 수가 정확히 일치하지 않는
-문제는 결과에 맞춰 숨은 규칙을 조정하지 않고 `GAP-UPC-06`으로 추적한다.
+현재 원본 무결성 검사, 메모리 제한 전처리, 중앙 900셀 공간 선택, UPC 초기 그룹과
+Fig. 4 제한 감사까지 구현했다. UPC의 명시 알고리즘과 Fig. 4 그룹 수가 정확히
+일치하지 않는 문제는 결과에 맞춰 숨은 규칙을 조정하지 않고 `GAP-UPC-06`으로
+추적한다. 제한 감사 후 주 실험은 `train_only`, Algorithm 1 민감도 실험은
+`algorithm1_full_month`로 고정했으며 Fig. 4 probe는 모델 입력으로 사용하지 않는다.
 각 단계는 입력·출력 checksum과 합성 테스트로 검증하며, 논문에서 공개하지 않은
 중앙 셀 목록은 `central-900-approximate` 프로토콜로 명시한다.

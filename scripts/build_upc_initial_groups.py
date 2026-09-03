@@ -22,10 +22,10 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import numpy as np
 
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = REPOSITORY_ROOT / "configs" / "upc_milan_nov2013.json"
-PROTOCOL_NAMES = ("paper_faithful", "train_only")
+PROTOCOL_NAMES = ("algorithm1_full_month", "train_only")
 HOURS_PER_DAY = 24
 
 
@@ -56,9 +56,9 @@ class InputPaths:
 
 @dataclass(frozen=True)
 class OutputPaths:
-    paper_faithful_peak_hours: Path
+    algorithm1_full_month_peak_hours: Path
     train_only_peak_hours: Path
-    figure4_diagnostic_peak_hours: Path
+    figure4_probe_peak_hours: Path
     all_cell_memberships_csv: Path
     central_900_memberships_csv: Path
     group_counts_json: Path
@@ -89,7 +89,7 @@ class UpcConfig:
     interval_ms: int
     observations_per_hour: int
     protocols: dict[str, ProtocolSpec]
-    figure4_diagnostic: ProtocolSpec
+    figure4_probe: ProtocolSpec
     paper_fingerprint: tuple[int, ...]
     cell_chunk_size: int
     require_exact_paper_fingerprint: bool
@@ -298,12 +298,12 @@ def load_upc_config(
 
     raw_diagnostics = _require_mapping(root.get("diagnostics"), "diagnostics")
     raw_figure4 = _require_mapping(
-        raw_diagnostics.get("figure4_complete_weeks_mean_profile"),
-        "diagnostics.figure4_complete_weeks_mean_profile",
+        raw_diagnostics.get("figure4_probe_complete_weeks_mean_profile"),
+        "diagnostics.figure4_probe_complete_weeks_mean_profile",
     )
     diagnostic_method = _require_string(
         raw_figure4.get("method"),
-        "diagnostics.figure4_complete_weeks_mean_profile.method",
+        "diagnostics.figure4_probe_complete_weeks_mean_profile.method",
     )
     if diagnostic_method != "mean_hourly_profile_then_argmax":
         raise UpcInitialGroupError(
@@ -311,11 +311,11 @@ def load_upc_config(
         )
     diagnostic_start = _parse_local_datetime(
         raw_figure4.get("start_local"),
-        "diagnostics.figure4_complete_weeks_mean_profile.start_local",
+        "diagnostics.figure4_probe_complete_weeks_mean_profile.start_local",
     )
     diagnostic_end = _parse_local_datetime(
         raw_figure4.get("end_exclusive_local"),
-        "diagnostics.figure4_complete_weeks_mean_profile.end_exclusive_local",
+        "diagnostics.figure4_probe_complete_weeks_mean_profile.end_exclusive_local",
     )
     if diagnostic_end <= diagnostic_start:
         raise UpcInitialGroupError(
@@ -323,12 +323,12 @@ def load_upc_config(
         )
     diagnostic_weekdays_only = _require_bool(
         raw_figure4.get("weekdays_only"),
-        "diagnostics.figure4_complete_weeks_mean_profile.weekdays_only",
+        "diagnostics.figure4_probe_complete_weeks_mean_profile.weekdays_only",
     )
     if not diagnostic_weekdays_only:
         raise UpcInitialGroupError("Fig. 4 진단은 평일만 사용해야 합니다.")
-    figure4_diagnostic = ProtocolSpec(
-        name="figure4_complete_weeks_mean_profile",
+    figure4_probe = ProtocolSpec(
+        name="figure4_probe_complete_weeks_mean_profile",
         start_local=diagnostic_start,
         end_exclusive_local=diagnostic_end,
         weekdays_only=diagnostic_weekdays_only,
@@ -374,7 +374,7 @@ def load_upc_config(
         interval_ms=interval_ms,
         observations_per_hour=observations_per_hour,
         protocols=protocols,
-        figure4_diagnostic=figure4_diagnostic,
+        figure4_probe=figure4_probe,
         paper_fingerprint=paper_fingerprint,
         cell_chunk_size=cell_chunk_size,
         require_exact_paper_fingerprint=require_exact,
@@ -943,6 +943,7 @@ def compute_mean_profile_peak_hours(
     selected_observations = cell_count * len(flat_indices)
     diagnostics: dict[str, Any] = {
         "status": "diagnostic_hypothesis_not_algorithm_1",
+        "eligible_for_model_input": False,
         "method": "mean hourly profile over complete-week weekdays, then argmax",
         "reason": (
             "This unreported variant is retained only because it closely matches "
@@ -983,9 +984,9 @@ def _write_npy(path: Path, array: np.ndarray) -> None:
 def _write_all_memberships(
     path: Path,
     cell_ids: np.ndarray,
-    paper_peak_hours: np.ndarray,
+    algorithm1_peak_hours: np.ndarray,
     train_peak_hours: np.ndarray,
-    figure4_diagnostic_peak_hours: np.ndarray,
+    figure4_probe_peak_hours: np.ndarray,
     central_positions: np.ndarray,
 ) -> None:
     central_mask = np.zeros(len(cell_ids), dtype=bool)
@@ -995,9 +996,9 @@ def _write_all_memberships(
         writer.writerow(
             [
                 "cell_id",
-                "paper_faithful_peak_hour",
+                "algorithm1_full_month_peak_hour",
                 "train_only_peak_hour",
-                "figure4_diagnostic_peak_hour",
+                "figure4_probe_peak_hour",
                 "is_central_900",
             ]
         )
@@ -1005,9 +1006,9 @@ def _write_all_memberships(
             writer.writerow(
                 [
                     int(cell_id),
-                    int(paper_peak_hours[index]),
+                    int(algorithm1_peak_hours[index]),
                     int(train_peak_hours[index]),
-                    int(figure4_diagnostic_peak_hours[index]),
+                    int(figure4_probe_peak_hours[index]),
                     int(central_mask[index]),
                 ]
             )
@@ -1017,9 +1018,9 @@ def _write_central_memberships(
     path: Path,
     central_rows: Sequence[Mapping[str, str]],
     central_positions: np.ndarray,
-    paper_peak_hours: np.ndarray,
+    algorithm1_peak_hours: np.ndarray,
     train_peak_hours: np.ndarray,
-    figure4_diagnostic_peak_hours: np.ndarray,
+    figure4_probe_peak_hours: np.ndarray,
 ) -> None:
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle, lineterminator="\n")
@@ -1030,9 +1031,9 @@ def _write_central_memberships(
                 "grid_column",
                 "centroid_lon",
                 "centroid_lat",
-                "paper_faithful_peak_hour",
+                "algorithm1_full_month_peak_hour",
                 "train_only_peak_hour",
-                "figure4_diagnostic_peak_hour",
+                "figure4_probe_peak_hour",
             ]
         )
         for row, position in zip(central_rows, central_positions, strict=True):
@@ -1043,9 +1044,9 @@ def _write_central_memberships(
                     row["grid_column"],
                     row["centroid_lon"],
                     row["centroid_lat"],
-                    int(paper_peak_hours[position]),
+                    int(algorithm1_peak_hours[position]),
                     int(train_peak_hours[position]),
-                    int(figure4_diagnostic_peak_hours[position]),
+                    int(figure4_probe_peak_hours[position]),
                 ]
             )
 
@@ -1131,7 +1132,7 @@ def run_upc_initial_groups(config: UpcConfig) -> dict[str, Any]:
         )
         for name in PROTOCOL_NAMES
     }
-    figure4_hours = select_protocol_hours(axis, config.figure4_diagnostic)
+    figure4_hours = select_protocol_hours(axis, config.figure4_probe)
     figure4_result = compute_mean_profile_peak_hours(
         arrays["traffic"],
         arrays["missing_mask"],
@@ -1142,7 +1143,7 @@ def run_upc_initial_groups(config: UpcConfig) -> dict[str, Any]:
 
     expected = np.asarray(config.paper_fingerprint, dtype=np.int64)
     actual = np.asarray(
-        results["paper_faithful"].diagnostics["group_counts_hour_0_to_23"],
+        results["algorithm1_full_month"].diagnostics["group_counts_hour_0_to_23"],
         dtype=np.int64,
     )
     difference = actual - expected
@@ -1153,12 +1154,12 @@ def run_upc_initial_groups(config: UpcConfig) -> dict[str, Any]:
     )
     figure4_difference = figure4_actual - expected
     figure4_match = bool(np.array_equal(figure4_actual, expected))
-    paper_result = results["paper_faithful"].peak_hours
+    algorithm1_result = results["algorithm1_full_month"].peak_hours
     train_result = results["train_only"].peak_hours
     figure4_peaks = figure4_result.peak_hours
-    agreement_count = int(np.count_nonzero(paper_result == train_result))
-    central_paper_counts = np.bincount(
-        paper_result[central_positions], minlength=HOURS_PER_DAY
+    agreement_count = int(np.count_nonzero(algorithm1_result == train_result))
+    central_algorithm1_counts = np.bincount(
+        algorithm1_result[central_positions], minlength=HOURS_PER_DAY
     ).tolist()
     central_train_counts = np.bincount(
         train_result[central_positions], minlength=HOURS_PER_DAY
@@ -1176,7 +1177,7 @@ def run_upc_initial_groups(config: UpcConfig) -> dict[str, Any]:
             "l1_difference": int(np.abs(difference).sum()),
             "exact_match": paper_match,
         },
-        "figure4_diagnostic": {
+        "figure4_probe": {
             **figure4_result.diagnostics,
             "expected_hour_0_to_23": expected.tolist(),
             "difference_actual_minus_expected": figure4_difference.tolist(),
@@ -1192,9 +1193,11 @@ def run_upc_initial_groups(config: UpcConfig) -> dict[str, Any]:
         },
         "central_900": {
             "cell_count": config.expected_central_cell_count,
-            "paper_faithful_group_counts_hour_0_to_23": central_paper_counts,
+            "algorithm1_full_month_group_counts_hour_0_to_23": (
+                central_algorithm1_counts
+            ),
             "train_only_group_counts_hour_0_to_23": central_train_counts,
-            "figure4_diagnostic_group_counts_hour_0_to_23": (central_figure4_counts),
+            "figure4_probe_group_counts_hour_0_to_23": central_figure4_counts,
         },
     }
 
@@ -1205,13 +1208,16 @@ def run_upc_initial_groups(config: UpcConfig) -> dict[str, Any]:
 
     published = False
     try:
-        _write_npy(temporary_paths["paper_faithful_peak_hours"], paper_result)
+        _write_npy(
+            temporary_paths["algorithm1_full_month_peak_hours"],
+            algorithm1_result,
+        )
         _write_npy(temporary_paths["train_only_peak_hours"], train_result)
-        _write_npy(temporary_paths["figure4_diagnostic_peak_hours"], figure4_peaks)
+        _write_npy(temporary_paths["figure4_probe_peak_hours"], figure4_peaks)
         _write_all_memberships(
             temporary_paths["all_cell_memberships_csv"],
             arrays["cell_ids"],
-            paper_result,
+            algorithm1_result,
             train_result,
             figure4_peaks,
             central_positions,
@@ -1220,7 +1226,7 @@ def run_upc_initial_groups(config: UpcConfig) -> dict[str, Any]:
             temporary_paths["central_900_memberships_csv"],
             central_rows,
             central_positions,
-            paper_result,
+            algorithm1_result,
             train_result,
             figure4_peaks,
         )
@@ -1230,9 +1236,9 @@ def run_upc_initial_groups(config: UpcConfig) -> dict[str, Any]:
         )
 
         deterministic_keys = [
-            "paper_faithful_peak_hours",
+            "algorithm1_full_month_peak_hours",
             "train_only_peak_hours",
-            "figure4_diagnostic_peak_hours",
+            "figure4_probe_peak_hours",
             "all_cell_memberships_csv",
             "central_900_memberships_csv",
             "group_counts_json",
@@ -1292,7 +1298,16 @@ def run_upc_initial_groups(config: UpcConfig) -> dict[str, Any]:
                 ),
             },
             "paper_fingerprint": counts_report["paper_fingerprint"],
-            "figure4_diagnostic": counts_report["figure4_diagnostic"],
+            "figure4_probe": counts_report["figure4_probe"],
+            "protocol_roles": {
+                "primary_model_protocol": "train_only",
+                "sensitivity_model_protocol": "algorithm1_full_month",
+                "diagnostic_only": "figure4_probe_complete_weeks_mean_profile",
+            },
+            "continuation_decision": {
+                "exact_figure4_match_required_for_independent_baselines": False,
+                "exact_figure4_match_required_for_reproduction_claim": True,
+            },
             "protocols": counts_report["protocols"],
             "protocol_membership_comparison": counts_report[
                 "protocol_membership_comparison"
@@ -1375,9 +1390,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"{name}: weekdays={protocol['weekday_count']}, "
             f"counts={protocol['group_counts_hour_0_to_23']}"
         )
-    figure4 = manifest["figure4_diagnostic"]
+    figure4 = manifest["figure4_probe"]
     print(
-        "figure4_complete_weeks_mean_profile: "
+        "figure4_probe_complete_weeks_mean_profile: "
         f"weekdays={figure4['weekday_count']}, "
         f"l1_difference={figure4['l1_difference']}, "
         f"counts={figure4['group_counts_hour_0_to_23']}"

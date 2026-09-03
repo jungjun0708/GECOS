@@ -64,9 +64,9 @@ min-max scaling은 한 셀 안의 모든 값에 같은 양의 선형 변환을 �
 
 | 이름 | 기간과 평일 수 | 대표 peak 계산 | 용도 |
 |---|---:|---|---|
-| `paper_faithful` | 11월 1~30일의 평일 21일 | 일별 peak의 최빈값 | 논문 본문과 Algorithm 1을 그대로 검증 |
+| `algorithm1_full_month` | 11월 1~30일의 평일 21일 | 일별 peak의 최빈값 | 논문 본문과 Algorithm 1을 그대로 검증하는 민감도 경로 |
 | `train_only` | 첫 20 calendar day 안의 평일 14일 | 일별 peak의 최빈값 | 미래 정보 누수가 없는 후속 학습용 주 프로토콜 |
-| `figure4_complete_weeks_mean_profile` | 11월 4~29일의 완전한 4주 평일 20일 | 시간별 평균 profile의 최대값 | Fig. 4 불일치 원인만 조사하는 진단 가설 |
+| `figure4_probe_complete_weeks_mean_profile` | 11월 4~29일의 완전한 4주 평일 20일 | 시간별 평균 profile의 최대값 | Fig. 4 불일치 원인만 조사하는 probe |
 
 세 번째 경로는 논문 Algorithm 1이 아니다. 공개된 Fig. 4와 매우 가까워지는 미공개
 가설을 재현성 분석용으로 보존한 것이며, 주 결과나 `train_only`를 대체하지 않는다.
@@ -96,14 +96,16 @@ python3 -m pip --python .venv/bin/python install --requirement requirements/upc.
 
 | 코드 | 의미 |
 |---:|---|
-| `0` | 입력 검증과 논문 지문의 정확한 일치까지 완료 |
+| `0` | 입력 검증과 산출물 생성을 완료. config가 허용하면 지문 불일치도 포함 |
 | `1` | config, 시간축, shape, checksum 또는 알고리즘 계약 오류 |
 | `2` | 파일 시스템 오류 |
-| `3` | 산출물과 진단 manifest는 생성했지만 논문 지문이 정확히 일치하지 않음 |
+| `3` | config가 정확 일치를 필수로 지정했고 논문 지문이 일치하지 않음 |
 
-현재 실제 데이터 실행은 의도적으로 종료 코드 `3`을 반환한다. CI나 shell에서 이를
-성공으로 바꾸지 않는다. `data/processed/upc/manifest.json`의 상태도
-`diagnostic_mismatch`로 기록된다.
+제한 감사 후 정확 일치가 독립 기준선의 선행 조건은 아니라는 결정을 내렸다. 따라서
+현재 config는 `require_exact_paper_fingerprint=false`이고 실제 데이터 실행은 종료
+코드 `0`을 반환한다. 불일치를 성공으로 위장하지 않도록
+`data/processed/upc/manifest.json`의 상태는 계속 `diagnostic_mismatch`로 기록한다.
+정확한 Fig. 4 재현을 주장하려면 여전히 정확 일치가 필요하다.
 
 ## 6. 실제 10,000셀 결과
 
@@ -173,7 +175,7 @@ python3 -m pip --python .venv/bin/python install --requirement requirements/upc.
    합계와 평균은 argmax 위치가 같지만, 일별 peak의 최빈값 대신 여러 날짜의 평균
    profile을 사용하면 Fig. 4에 급격히 가까워진다.
 3. **Scaling:** scaling 전후 peak 불일치는 두 주 프로토콜과 진단 경로 모두 `0`이다.
-4. **결측:** `paper_faithful`의 30,240,000개 선택 관측 중 완전 누락은 `1,850개`
+4. **결측:** `algorithm1_full_month`의 30,240,000개 선택 관측 중 완전 누락은 `1,850개`
    (`0.00612%`), Internet 전체 공란은 `2,873개`(`0.00950%`)다. 모두 전처리
    계약대로 0을 유지하고 별도 집계했다.
 
@@ -182,9 +184,11 @@ python3 -m pip --python .venv/bin/python install --requirement requirements/upc.
 - 11월 1일 금요일을 제외하고 월요일에 시작하는 완전한 4주 사용
 - 일별 peak의 최빈값이 아니라 평일 시간별 평균 profile의 peak 사용
 
-그러나 남은 4개의 L1 차이는 공개 자료만으로 설명할 수 없다. 원저자 전처리 코드,
+그러나 남은 L1 차이 `4`는 공개 자료만으로 설명할 수 없다. 원저자 전처리 코드,
 사용한 정확한 데이터 사본, 부동소수점 처리 또는 Fig. 4 label 생성 자료가 필요하다.
-이 문제는 `GAP-UPC-06`으로 관리한다.
+날짜 범위, 집계, 정밀도와 결측 처리를 사전 등록한 10개 변형으로 추가 확인한 결과는
+[UPC Fig. 4 불일치 제한 감사](06-upc-fig4-bounded-audit.md)에 기록하며, 이 문제는
+계속 `GAP-UPC-06`으로 관리한다.
 
 ## 8. 산출물과 결정성
 
@@ -192,12 +196,12 @@ python3 -m pip --python .venv/bin/python install --requirement requirements/upc.
 
 | 산출물 | 내용 | 크기 | SHA-256 |
 |---|---|---:|---|
-| `paper_faithful_peak_hours.npy` | Algorithm 1의 10,000셀 대표 hour | 10,128 bytes | `62dddbd128c50e50111c6a664c828a46bf53b9ac5d9b073e8cf1f4cad55976b4` |
+| `algorithm1_full_month_peak_hours.npy` | Algorithm 1의 10,000셀 대표 hour | 10,128 bytes | `62dddbd128c50e50111c6a664c828a46bf53b9ac5d9b073e8cf1f4cad55976b4` |
 | `train_only_peak_hours.npy` | 누수 방지 프로토콜 대표 hour | 10,128 bytes | `05aab648b576c2c0249fe7e2f89580ea923b4c60596b72c7ff88a7f45a301a82` |
-| `figure4_diagnostic_peak_hours.npy` | Fig. 4 진단 가설 대표 hour | 10,128 bytes | `d4c045aaf90520277f91ddcddc71bc3344c156afecfcb50a062c2d130add68c5` |
-| `all_cell_memberships.csv` | 세 경로의 10,000셀 membership | 155,110 bytes | `8648636746d1fd0d318cf72cca48bf64da68f37ba513516cf9118cb18ede07a3` |
-| `central_900_memberships.csv` | 중앙 900셀 위치와 membership | 45,818 bytes | `58a83193c555a34cfca5d84cc3da86723e23cbd73fe558dbee0d9ed12820c9a0` |
-| `group_counts.json` | 24개 그룹 수와 진단 차이 | 7,301 bytes | `c061514d106f9683a7c7deb935f7f665889964e8d9977119621d82fa115ae85e` |
+| `figure4_probe_peak_hours.npy` | Fig. 4 probe 대표 hour, 모델 입력 사용 금지 | 10,128 bytes | `d4c045aaf90520277f91ddcddc71bc3344c156afecfcb50a062c2d130add68c5` |
+| `all_cell_memberships.csv` | 세 경로의 10,000셀 membership | 155,112 bytes | `5230adbea2997c6c8e007905539b9b67b1247cc1338ef10528cc044c62d131c5` |
+| `central_900_memberships.csv` | 중앙 900셀 위치와 membership | 45,820 bytes | `adfda65c36361956262581f8bdb5a2da40fdbad0528e0717b49807135be1d2a9` |
+| `group_counts.json` | 24개 그룹 수와 진단 차이 | 7,344 bytes | `a04f8119fe582c4b9b900ad8263e48d40d2987f730e984a8bd1e494d2a3cc790` |
 | `manifest.json` | 입력·config·환경·진단·출력 checksum | 실행별 metadata 포함 | 실행마다 생성 |
 
 실제 데이터에서 연속 두 번 실행했을 때 동적 시각과 elapsed time을 포함하는 manifest를
@@ -240,15 +244,15 @@ Colab을 사용하지 않는다. Colab은 이후 LSTM/RCTL 학습에 사용한�
 
 이번 단계의 핵심 학습은 “논문 의사코드를 구현했다”와 “논문 그림을 재현했다”가 같은
 말이 아니라는 점이다. 정확한 공개 지문이 있었기 때문에 기간 선택과 집계 연산이라는
-숨은 차이를 모델 학습 전에 발견할 수 있었다. 또한 `paper_faithful`과
+숨은 차이를 모델 학습 전에 발견할 수 있었다. 또한 `algorithm1_full_month`와
 `train_only`를 분리해 재현 충실도와 평가 누수 방지를 동시에 추적할 수 있게 됐다.
 
-현재 다음 UPC 단계인 PCC 및 `N=2` 최종 군집화로 자동 진행하지 않는다. 먼저 다음
-두 결과를 서로 다른 실험 변형으로 유지할지 결정하고, 어떤 결과도 Fig. 4와 정확히
-일치한다고 주장하지 않아야 한다.
+제한 감사로 다음 두 결과를 서로 다른 실험 역할로 유지하기로 결정했다.
 
-- 논문 서술을 따르는 `paper_faithful`
 - 주 성능 평가에서 사용할 누수 방지 `train_only`
+- 논문 서술 민감도 비교에 사용할 `algorithm1_full_month`
 
-Fig. 4 진단 가설은 원인 조사와 비교에만 사용하며 모델 성능을 좋게 만들기 위한
-사후 선택으로 사용하지 않는다.
+Fig. 4 probe는 원인 조사와 비교에만 사용하며 모델 성능을 좋게 만들기 위한 사후
+선택으로 사용하지 않는다. 정확 일치 실패는 독립 기준선과 PCC 구현을 막지 않지만,
+“Fig. 4 정확 재현” 주장은 막는다. 다음 단계부터는 이 결정에 따라 `train_only`를
+주 프로토콜로 사용한다.
