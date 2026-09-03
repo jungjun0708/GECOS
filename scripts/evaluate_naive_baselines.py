@@ -97,6 +97,8 @@ def compute_per_cell_metric_parts(
     internet_null_targets: np.ndarray,
     lag_missing: np.ndarray,
     lag_internet_null: np.ndarray,
+    *,
+    require_nonnegative_predictions: bool = True,
 ) -> dict[str, np.ndarray]:
     """한 chunk의 셀별 지표 부분합을 float64로 계산한다."""
 
@@ -112,8 +114,10 @@ def compute_per_cell_metric_parts(
         raise ForecastContractError("target, prediction과 mask shape가 서로 다릅니다.")
     if not np.all(np.isfinite(targets)) or not np.all(np.isfinite(predictions)):
         raise ForecastContractError("target 또는 prediction에 NaN/무한대가 있습니다.")
-    if np.any(targets < 0) or np.any(predictions < 0):
-        raise ForecastContractError("target과 기준선 prediction은 음수일 수 없습니다.")
+    if np.any(targets < 0):
+        raise ForecastContractError("target은 음수일 수 없습니다.")
+    if require_nonnegative_predictions and np.any(predictions < 0):
+        raise ForecastContractError("기준선 prediction은 음수일 수 없습니다.")
     if np.any(missing_targets & internet_null_targets):
         raise ForecastContractError("두 target 결측 mask가 겹칩니다.")
 

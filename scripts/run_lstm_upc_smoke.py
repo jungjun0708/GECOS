@@ -511,6 +511,9 @@ def _evaluate_prediction_sets(
                         internet_null,
                         last_input_missing,
                         last_input_null,
+                        require_nonnegative_predictions=(
+                            label == "persistence_selected_smoke"
+                        ),
                     )
                 )
                 summary, rows = finalize_metric_parts(
@@ -737,6 +740,10 @@ def run_lstm_upc_smoke(config: LstmUpcSmokeConfig) -> dict[str, Any]:
             "target_policies": list(TARGET_POLICIES),
             "mape_zero_handling": "MAPE uses only eligible targets with y > 0",
             "aggregations": ["micro", "cell_macro"],
+            "negative_prediction_policy": (
+                "LSTM linear-output predictions are evaluated without clipping; "
+                "negative counts and ranges remain in training diagnostics"
+            ),
             "lag_source_fields_for_models": "most recent value in each eight-step input window",
         },
         "results": metric_results,
