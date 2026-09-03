@@ -172,3 +172,49 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# -------------------------------------------------------------------
+# GECOS reproduction: local source data and papers
+# -------------------------------------------------------------------
+
+# Current locally downloaded Telecom Italia dataset
+/dataverse_files/
+/dataverse_files.zip
+
+# Licensed paper copy: keep locally, never commit
+/Urban Mobile Data Prediction With Geospatial Clustering and Dual Residual Learning.pdf
+
+# File referenced by the original public example but not distributed
+/correlation_matrix_0721.csv
+
+# -------------------------------------------------------------------
+# Standard data directories
+# -------------------------------------------------------------------
+
+/data/raw/*
+!/data/raw/.gitkeep
+
+/data/interim/*
+!/data/interim/.gitkeep
+
+/data/processed/*
+!/data/processed/.gitkeep
+
+# -------------------------------------------------------------------
+# Models, checkpoints, and experiment artifacts
+# -------------------------------------------------------------------
+
+/checkpoints/
+/models/
+/runs/
+/logs/
+/wandb/
+/mlruns/
+/tensorboard/
+/artifacts/models/
+
+*.keras
+*.h5
+*.ckpt
+*.ckpt.*
+*.weights.h5
