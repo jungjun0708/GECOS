@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "source": {
+    "title": "Telecommunications - SMS, Call, Internet - MI",
+    "persistent_id": "doi:10.7910/DVN/EGZHFV",
+    "doi_url": "https://doi.org/10.7910/DVN/EGZHFV",
+    "metadata_api_url": "https://dataverse.harvard.edu/api/datasets/:persistentId/?persistentId=doi%3A10.7910%2FDVN%2FEGZHFV",
+    "dataset_version": "1.3",
+    "released_at": "2020-02-09T11:14:03Z",
+    "license": "Open Database License (ODbL) 1.0"
+  },
+  "selection": {
+    "city": "Milano",
+    "period_start": "2013-11-01",
+    "period_end": "2013-11-30",
+    "file_glob": "sms-call-internet-mi-2013-11-*.txt",
+    "expected_file_count": 30,
+    "expected_total_bytes": 10351643789
+  },
+  "integrity": {
+    "algorithm": "md5",
+    "purpose": "공식 Dataverse 파일과의 바이트 단위 동일성 확인",
+    "security_note": "MD5는 보안 용도가 아니라 원출처가 공개한 무결성 값과의 비교에만 사용한다."
+  },
+  "files": [
+    {
+      "name": "sms-call-internet-mi-2013-11-01.txt",
+      "size_bytes": 322874887,
+      "checksum": "658c49f8e3c7910bd3bb2bafbf62cdce"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-02.txt",
+      "size_bytes": 315164060,
+      "checksum": "d90f3512c4f278f78d875fb49fcb7191"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-03.txt",
+      "size_bytes": 313058344,
+      "checksum": "71bde0827182bb45ce6f4c708fe6b42e"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-04.txt",
+      "size_bytes": 361097689,
+      "checksum": "151f85ab92fc0fea449ff19cb7e50a0a"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-05.txt",
+      "size_bytes": 372894401,
+      "checksum": "f8f22dfdce95bf66d6fa9f699afbdf5e"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-06.txt",
+      "size_bytes": 374625924,
+      "checksum": "1c4e7de6a559357560927796b5c63c06"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-07.txt",
+      "size_bytes": 373036285,
+      "checksum": "dc0fac4c7fccb4c3328a77f450230c5c"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-08.txt",
+      "size_bytes": 376123111,
+      "checksum": "e2c02fde5673256145b29eb73321ca12"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-09.txt",
+      "size_bytes": 332440742,
+      "checksum": "ceee41ef748750475d57f16770b0abe0"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-10.txt",
+      "size_bytes": 314441422,
+      "checksum": "4b7a506876b06565272af93048aa54b8"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-11.txt",
+      "size_bytes": 351945243,
+      "checksum": "748eee94e1924f95d323f3df1dd6f009"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-12.txt",
+      "size_bytes": 358347374,
+      "checksum": "e70f999b213bfe38b36c956cf0d1daf4"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-13.txt",
+      "size_bytes": 362539357,
+      "checksum": "f9d8e9e15d3b0ed82792dd9fb77f1ec2"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-14.txt",
+      "size_bytes": 363552765,
+      "checksum": "7b8e81a994c7c3f0d17338e42be76944"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-15.txt",
+      "size_bytes": 364814415,
+      "checksum": "51a465a1b72ec28cfa34cd27ecd40cb2"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-16.txt",
+      "size_bytes": 321048116,
+      "checksum": "f319979979e14164667d7606a3d11c57"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-17.txt",
+      "size_bytes": 307197776,
+      "checksum": "c66a2d9873ef54812a4a17444cba7451"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-18.txt",
+      "size_bytes": 348325345,
+      "checksum": "3455490d465be13d6a107e5982672008"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-19.txt",
+      "size_bytes": 356545029,
+      "checksum": "f9d64c99a62e560e754dbe40c0510786"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-20.txt",
+      "size_bytes": 360144384,
+      "checksum": "ea4904a581e9a829cebf2fdbaf679f25"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-21.txt",
+      "size_bytes": 358700264,
+      "checksum": "d2943e3d4f31a5d8f7575796d3b47368"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-22.txt",
+      "size_bytes": 360316105,
+      "checksum": "07a02618f46af85618247104bc46e974"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-23.txt",
+      "size_bytes": 317406788,
+      "checksum": "c0f44412f4d49cd7fa0edfff31ecd887"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-24.txt",
+      "size_bytes": 303987293,
+      "checksum": "8bffcfdffdfa73a18c9bcc64bf1de2b5"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-25.txt",
+      "size_bytes": 345276784,
+      "checksum": "9865c11cbfc3c907f8bce2eaa10f448c"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-26.txt",
+      "size_bytes": 352033486,
+      "checksum": "9a878cf4c279094446e5fb8f009f99bc"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-27.txt",
+      "size_bytes": 349777785,
+      "checksum": "a7d1abf21b6b11aa1725588d16d95c1f"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-28.txt",
+      "size_bytes": 350899256,
+      "checksum": "b47f3fa389889b9c804039c75968d85d"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-29.txt",
+      "size_bytes": 351607243,
+      "checksum": "4ee896fb8afb2fb1d7569119533d75c0"
+    },
+    {
+      "name": "sms-call-internet-mi-2013-11-30.txt",
+      "size_bytes": 311422116,
+      "checksum": "54ae3a2aeb373d3cbd031ba32dc8e778"
+    }
+  ]
+}

@@ -18,6 +18,11 @@ Telecom Italia, *Telecommunications - SMS, Call, Internet - MI*
 
 - DOI: <https://doi.org/10.7910/DVN/EGZHFV>
 - 라이선스: Open Database License (ODbL) 1.0
+- 원출처: [from BigDataChallenge contest](http://www.telecomitalia.com/tit/en/bigdatachallenge.html)
 
 데이터를 내려받거나 재배포할 때 ODbL 1.0 조건과 출처 표기를 확인한다.
 향후 제공할 전처리 명령으로 모든 중간 및 처리 데이터를 다시 생성할 수 있어야 한다.
+
+전처리를 시작하기 전에
+[원본 데이터 manifest와 무결성 검사](../docs/02-raw-data-integrity.md)를 실행한다.
+검증 보고서는 `interim/raw_integrity_report.json`에 생성되며 Git에는 포함하지 않는다.
