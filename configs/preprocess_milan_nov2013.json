@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "name": "milan-internet-2013-11",
+  "raw_reference_manifest": "metadata/telecom_italia_mi_2013_11.json",
+  "expected_total_rows": 160108003,
+  "grid": {
+    "cell_id_min": 1,
+    "cell_id_max": 10000,
+    "expected_cell_count": 10000
+  },
+  "time": {
+    "timezone": "Europe/Rome",
+    "start_local": "2013-11-01T00:00:00",
+    "end_exclusive_local": "2013-12-01T00:00:00",
+    "interval_ms": 600000,
+    "steps_per_file": 144,
+    "expected_steps": 4320
+  },
+  "parser": {
+    "block_size_bytes": 67108864,
+    "column_names": [
+      "cell_id",
+      "timestamp_ms",
+      "country_code",
+      "sms_in",
+      "sms_out",
+      "call_in",
+      "call_out",
+      "internet"
+    ]
+  },
+  "aggregation": {
+    "target": "internet",
+    "null_value": 0.0,
+    "accumulator_dtype": "float64",
+    "output_dtype": "float32"
+  },
+  "parquet": {
+    "compression": "zstd",
+    "compression_level": 3,
+    "row_group_rows": 262144
+  },
+  "outputs": {
+    "interim_parquet": "data/interim/internet_10min.parquet",
+    "traffic": "data/processed/traffic.npy",
+    "cell_ids": "data/processed/cell_ids.npy",
+    "timestamps_ms": "data/processed/timestamps_ms.npy",
+    "missing_mask": "data/processed/missing_mask.npy",
+    "internet_null_mask": "data/processed/internet_null_mask.npy",
+    "manifest": "data/processed/manifest.json"
+  }
+}

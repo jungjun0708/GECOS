@@ -113,7 +113,11 @@
 3. 10,000개 셀과 4,320개 시점의 완전한 곱으로 reindex한다.
 4. 원본에 없는 셀-시점 조합도 0으로 채운다.
 5. 학습 행렬은 `float32`, 셀 ID와 timestamp는 정수형으로 저장한다.
-6. 원본 공란과 완전 누락을 구분할 수 있도록 missing mask와 통계를 남긴다.
+6. `missing_mask`는 `(cell_id, timestamp_ms)`에 원본 행이 하나도 없을 때만
+   `True`로 저장한다.
+7. `internet_null_mask`는 원본 행은 있지만 모든 `internet` 값이 공란일 때만
+   `True`로 저장한다. 두 mask는 서로 겹치지 않는다.
+8. 활동 열별 원본 공란 행 수와 두 결측 유형의 개수를 manifest에 남긴다.
 
 핵심 집계는 다음 수식으로 정의한다.
 
@@ -129,6 +133,7 @@ data/processed/traffic.npy
 data/processed/cell_ids.npy
 data/processed/timestamps_ms.npy
 data/processed/missing_mask.npy
+data/processed/internet_null_mask.npy
 data/processed/manifest.json
 ```
 
@@ -144,6 +149,7 @@ MD5, 행 수, 변환 설정, 출력 shape와 checksum을 기록한다. 향후 �
 - 인접 timestamp 차이가 모두 600,000ms임
 - NaN 및 무한대가 없음
 - 모든 traffic 값이 0 이상임
+- `missing_mask`와 `internet_null_mask`가 서로 겹치지 않음
 - 같은 원본과 설정으로 실행했을 때 출력 checksum이 같음
 
 이 조건을 통과하기 전에는 UPC 또는 모델 학습을 시작하지 않는다.

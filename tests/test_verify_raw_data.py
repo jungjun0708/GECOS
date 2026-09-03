@@ -145,7 +145,9 @@ class VerifyRawDataTests(unittest.TestCase):
         with self.assertRaisesRegex(ManifestError, "중복 파일명"):
             load_reference_manifest(self.reference_path)
 
-    def test_cli_exit_codes_distinguish_pass_failure_and_configuration_error(self) -> None:
+    def test_cli_exit_codes_distinguish_pass_failure_and_configuration_error(
+        self,
+    ) -> None:
         files = {"sample-01.txt": b"abc"}
         self.write_reference(files)
         self.create_files(files)

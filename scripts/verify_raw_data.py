@@ -10,11 +10,11 @@ import os
 import re
 import sys
 import tempfile
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Mapping, Sequence
-
+from typing import Any
 
 TOOL_VERSION = "1.0.0"
 DEFAULT_CHUNK_SIZE = 8 * 1024 * 1024
@@ -80,7 +80,9 @@ def load_reference_manifest(path: Path) -> ReferenceManifest:
         raise ManifestError(f"기준 manifest가 올바른 JSON이 아닙니다: {exc}") from exc
 
     root = _require_mapping(payload, "root")
-    schema_version = _require_int(root.get("schema_version"), "schema_version", minimum=1)
+    schema_version = _require_int(
+        root.get("schema_version"), "schema_version", minimum=1
+    )
     if schema_version != 1:
         raise ManifestError(f"지원하지 않는 schema_version입니다: {schema_version}")
 
@@ -158,7 +160,9 @@ def load_reference_manifest(path: Path) -> ReferenceManifest:
     )
 
 
-def compute_digest(path: Path, algorithm: str, chunk_size: int = DEFAULT_CHUNK_SIZE) -> str:
+def compute_digest(
+    path: Path, algorithm: str, chunk_size: int = DEFAULT_CHUNK_SIZE
+) -> str:
     """파일 전체를 메모리에 올리지 않고 digest를 계산한다."""
 
     if chunk_size <= 0:
@@ -194,11 +198,15 @@ def verify_data_directory(
         raise ValueError("chunk_size는 0보다 커야 합니다.")
 
     directory_exists = data_directory.is_dir()
-    observed_paths = {
-        path.name: path
-        for path in data_directory.glob(reference.file_glob)
-        if path.is_file()
-    } if directory_exists else {}
+    observed_paths = (
+        {
+            path.name: path
+            for path in data_directory.glob(reference.file_glob)
+            if path.is_file()
+        }
+        if directory_exists
+        else {}
+    )
     expected_names = {item.name for item in reference.files}
     observed_names = set(observed_paths)
     missing_files = sorted(expected_names - observed_names)
@@ -297,7 +305,9 @@ def verify_data_directory(
     return {
         "report_schema_version": 1,
         "tool": {"name": "verify_raw_data", "version": TOOL_VERSION},
-        "generated_at_utc": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "generated_at_utc": datetime.now(timezone.utc)
+        .isoformat()
+        .replace("+00:00", "Z"),
         "source": dict(reference.source),
         "verification": {
             "mode": "size_only" if quick else "size_and_checksum",
@@ -432,7 +442,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"보고서: {_display_path(args.output)}")
 
     if status == "passed_size_only":
-        print("주의: 빠른 검사는 MD5를 확인하지 않았으므로 무결성이 확정되지 않았습니다.")
+        print(
+            "주의: 빠른 검사는 MD5를 확인하지 않았으므로 무결성이 확정되지 않았습니다."
+        )
     elif status == "passed":
         print("원본 데이터 무결성 검증에 성공했습니다.")
     else:
