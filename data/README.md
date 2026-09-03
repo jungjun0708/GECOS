@@ -67,3 +67,11 @@ Fig. 4 불일치에 대한 사전 등록 감사는
 [UPC Fig. 4 불일치 제한 감사](../docs/06-upc-fig4-bounded-audit.md)의 절차로
 실행한다. 결과 JSON·CSV와 manifest는 `processed/upc/audits/`에 저장되며 역시
 Git에서 제외된다. 이 감사는 진단 membership 파일을 만들지 않는다.
+
+## 학습 없는 기준선
+
+공통 예측 표본과 시간 분할을 검증한 뒤
+[예측 표본 계약과 학습 없는 기준선](../docs/07-naive-baselines.md)을 실행한다.
+Persistence와 daily seasonal naive의 요약, Test 셀별 지표와 manifest는
+`processed/baselines/`에 저장된다. 이 결과도 파생 데이터이므로 Git에서 제외하며,
+결정성은 manifest의 출력 SHA-256과 반복 실행으로 확인한다.
