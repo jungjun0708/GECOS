@@ -78,6 +78,13 @@ Git에서 제외된다. 이 감사는 진단 membership 파일을 만들지 않�
 민감도, 논문 Fig. 5 진단, 입력·출력 checksum을 보존한다. Fig. 4 probe는 이 단계의
 입력으로 사용하지 않는다.
 
+PCC 순서 민감도 검토 후에는
+[프로토콜별 UPC 학습 정책](../docs/10-upc-order-training-policy.md)을 생성한다.
+`processed/upc/training_policy.json`은 `train_only`만 모델 학습에 허용하고,
+`algorithm1_full_month`와 Fig. 4 probe를 차단한다. 함께 생성되는
+`training_policy_manifest.json`은 정책 config와 보호한 네 PCC 산출물의 checksum을
+기록한다. 후속 Colab 입력을 만들기 전에 이 정책 검증을 통과해야 한다.
+
 ## 학습 없는 기준선
 
 공통 예측 표본과 시간 분할을 검증한 뒤

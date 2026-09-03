@@ -24,18 +24,20 @@ Urban Mobile Data Prediction with Geospatial Clustering and Dual Residual Learni
 - [예측 표본 계약과 학습 없는 기준선](docs/07-naive-baselines.md)
 - [RCTL 아키텍처 계약과 Colab T4 과적합 smoke](docs/08-rctl-architecture-smoke.md)
 - [UPC PCC 기반 최종 2개 클러스터](docs/09-upc-pcc-final-clusters.md)
+- [UPC 순서 민감도 검토와 프로토콜별 학습 정책](docs/10-upc-order-training-policy.md)
 - [데이터 디렉터리와 출처](data/README.md)
 
 현재 원본 무결성 검사, 메모리 제한 전처리, 중앙 900셀 공간 선택, UPC 초기 그룹과
 Fig. 4 제한 감사, 공통 예측 계약과 학습 없는 두 기준선, RCTL 구조 감사와 실제
-Train 부분집합의 Colab T4 과적합 smoke, UPC PCC 기반 최종 2개 클러스터까지
-구현했다. UPC의 명시
+Train 부분집합의 Colab T4 과적합 smoke, UPC PCC 기반 최종 2개 클러스터와
+프로토콜별 학습 정책까지 구현했다. UPC의 명시
 알고리즘과 Fig. 4 그룹 수가 정확히 일치하지 않는 문제는 결과에 맞춰 숨은 규칙을
 조정하지 않고 `GAP-UPC-06`으로 추적한다. 제한 감사 후 주 실험은 `train_only`,
 Algorithm 1 민감도 실험은 `algorithm1_full_month`로 고정했으며 Fig. 4 probe는 모델
 입력으로 사용하지 않는다. PCC 병합 결과 `train_only`은 남은 그룹 순서를 뒤집어도
-membership이 같았지만 전체 월 경로는 50.48%만 일치해 `GAP-UPC-07`과 고비용 학습
-전 검토 조건으로 남겼다. 기준선은 엄격한 20/5/5 시간 분할에서 Persistence가
+membership이 같았지만 전체 월 경로는 50.48%만 일치했다. 이에 따라 누수 없는
+`train_only`만 주 모델 학습에 허용하고 전체 월과 Fig. 4 probe는 차단하는 정책으로
+`GAP-UPC-07`의 학습 범위를 결정했다. 기준선은 엄격한 20/5/5 시간 분할에서 Persistence가
 일간 계절성 naive보다 강함을 확인했다. 각 단계는 입력·출력 checksum과 합성 테스트로
 검증하며, 논문에서 공개하지 않은 중앙 셀 목록은 `central-900-approximate`
 프로토콜로 명시한다. 논문 그림 해석형 RCTL의 parameter 수는 논문 표와 일치하지
