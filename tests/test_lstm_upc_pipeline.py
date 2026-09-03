@@ -14,7 +14,10 @@ from scripts.prepare_lstm_upc_smoke import (
     evenly_spaced_positions,
     load_central_cluster_memberships,
 )
-from scripts.run_lstm_upc_smoke import recombine_cluster_predictions
+from scripts.run_lstm_upc_smoke import (
+    recombine_cluster_predictions,
+    verified_source_git,
+)
 
 
 class LstmSmokeArrayTests(unittest.TestCase):
@@ -164,6 +167,23 @@ class LstmPredictionRecombinationTests(unittest.TestCase):
                 predictions_by_cluster={0: np.zeros((1, 2, 1), dtype=np.float32)},
                 expected_cluster_counts=((0, 1), (1, 1)),
             )
+
+
+class LstmSourceGitTests(unittest.TestCase):
+    def test_clean_full_commit_is_preserved_as_colab_provenance(self) -> None:
+        commit = "a" * 40
+
+        result = verified_source_git({"git": {"commit": commit, "dirty": False}})
+
+        self.assertEqual(result["commit"], commit)
+        self.assertFalse(result["dirty"])
+        self.assertEqual(result["provenance"], "locally_prepared_input_manifest")
+
+    def test_dirty_or_malformed_source_is_rejected(self) -> None:
+        with self.assertRaisesRegex(LstmSmokeContractError, "clean Git commit"):
+            verified_source_git({"git": {"commit": "a" * 40, "dirty": True}})
+        with self.assertRaisesRegex(LstmSmokeContractError, "commit 형식"):
+            verified_source_git({"git": {"commit": "not-a-commit", "dirty": False}})
 
 
 if __name__ == "__main__":

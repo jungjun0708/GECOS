@@ -70,6 +70,33 @@ def _content_sha256(array: np.ndarray) -> str:
     return hashlib.sha256(np.ascontiguousarray(array).tobytes()).hexdigest()
 
 
+def verified_source_git(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """로컬 준비 시점의 clean Git commit을 Colab 실행 provenance로 검증한다."""
+
+    source_git = manifest.get("git")
+    if not isinstance(source_git, dict):
+        raise LstmSmokeContractError("LSTM input manifest에 Git provenance가 없습니다.")
+    commit = source_git.get("commit")
+    dirty = source_git.get("dirty")
+    if (
+        not isinstance(commit, str)
+        or len(commit) != 40
+        or any(character not in "0123456789abcdef" for character in commit)
+    ):
+        raise LstmSmokeContractError(
+            "LSTM input manifest의 Git commit 형식이 올바르지 않습니다."
+        )
+    if dirty is not False:
+        raise LstmSmokeContractError(
+            "LSTM input bundle은 clean Git commit에서 준비해야 합니다."
+        )
+    return {
+        "commit": commit,
+        "dirty": False,
+        "provenance": "locally_prepared_input_manifest",
+    }
+
+
 def _expected_bundle_array_names(config: LstmUpcSmokeConfig) -> set[str]:
     names = {"cell_ids", "memberships"}
     for split_name in config.selection.splits:
@@ -97,6 +124,7 @@ def load_and_verify_bundle(
     manifest = _load_json(config.outputs.input_manifest, "LSTM input manifest")
     if manifest.get("status") != "complete":
         raise LstmSmokeContractError("LSTM input manifest가 complete 상태가 아닙니다.")
+    verified_source_git(manifest)
     manifest_config = manifest.get("config")
     if not isinstance(manifest_config, dict):
         raise LstmSmokeContractError("LSTM input manifest에 config 계약이 없습니다.")
@@ -589,6 +617,7 @@ def run_lstm_upc_smoke(config: LstmUpcSmokeConfig) -> dict[str, Any]:
             "요청한 Tesla T4가 아니므로 LSTM smoke를 중단합니다."
         )
     arrays, input_manifest = load_and_verify_bundle(config)
+    source_git = verified_source_git(input_manifest)
 
     tf.keras.backend.clear_session()
     configure_determinism(config.seed)
@@ -802,7 +831,8 @@ def run_lstm_upc_smoke(config: LstmUpcSmokeConfig) -> dict[str, Any]:
             "created_at_utc": finished_at.isoformat(),
             "scope": "central-900 UPC off/on selected-target pipeline diagnostic",
             "not_a_performance_result": True,
-            "git": _git_state(),
+            "git": source_git,
+            "execution_workspace_git": _git_state(),
             "config": {
                 "path": _display_path(config.path),
                 "sha256": compute_sha256(config.path),

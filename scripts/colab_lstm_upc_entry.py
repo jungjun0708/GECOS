@@ -37,6 +37,9 @@ def main() -> int:
         or WORKSPACE.name != "gecos"
     ):
         raise RuntimeError(f"삭제 가능한 임시 작업 경로가 아닙니다: {WORKSPACE}")
+    for module_name in tuple(sys.modules):
+        if module_name == "scripts" or module_name.startswith("scripts."):
+            del sys.modules[module_name]
     if WORKSPACE.exists():
         shutil.rmtree(WORKSPACE)
     WORKSPACE.mkdir(parents=True)
