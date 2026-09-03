@@ -127,3 +127,25 @@ Validation/Test 성능이 아니며, 일회성 모델 checkpoint도 보존하지
 위 파일과 Colab 결과 ZIP은 모두 재생성 가능한 파생 산출물이므로 Git에서 제외한다.
 고정 5 epoch smoke는 checkpoint를 저장하지 않으며, 결과는 논문 성능표가 아니라
 pipeline의 구조·학습·재결합 검증으로만 사용한다.
+
+## LSTM Train-only scaling pilot 입력과 결과
+
+[LSTM Train-only 셀별 Min-Max scaling pilot](../docs/12-lstm-train-only-scaling-pilot.md)은
+기존 raw smoke와 같은 중앙 900셀·선택 target을 사용하되 각 셀의 Train 20일
+전체에서 적합한 Min-Max를 input과 target에 적용한다. Validation과 Test는 scaler
+적합에 사용하지 않으며 Test 배열은 Colab bundle에도 포함하지 않는다.
+
+- `interim/lstm_scaling_pilot/input.npz`: Train/Validation scaled window·target,
+  raw target·Persistence, scaler parameter와 mask
+- `interim/lstm_scaling_pilot/input_manifest.json`: 기준 raw 결과, scaler source,
+  clean Git commit, 배열 checksum과 역변환 gate
+- `interim/lstm_scaling_pilot/colab_bundle.zip`: Test가 없는 최소 Colab bundle
+- `processed/lstm_scaling_pilot/architecture_report.json`: 동일 LSTM 구조 감사
+- `processed/lstm_scaling_pilot/evaluation_report.json`: Validation 지표와 사전 판정
+- `processed/lstm_scaling_pilot/predictions.npz`: scaled 및 raw 단위 Validation 예측
+- `processed/lstm_scaling_pilot/per_cell_metrics.csv`: Validation 셀별 MAE/MAPE/WAPE
+- `processed/lstm_scaling_pilot/manifest.json`: provenance, T4 환경과 출력 checksum
+
+모든 파일은 재생성 가능한 파생 산출물이므로 Git에서 제외한다. pilot은 고정 5
+epoch이고 checkpoint를 남기지 않는다. Test는 본 학습의 모든 선택이 끝날 때까지
+봉인한다.

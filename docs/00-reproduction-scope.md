@@ -11,7 +11,7 @@
 - 논문 DOI: <https://doi.org/10.1109/TNSM.2025.3599168>
 - 원저자 공개 코드: <https://github.com/Superint-Lab/GECOS>
 - 데이터: <https://doi.org/10.7910/DVN/EGZHFV>
-- 문서 상태: 실행 계약 v1 (중앙 900셀 LSTM·UPC pipeline smoke 완료)
+- 문서 상태: 실행 계약 v1 (LSTM Train-only scaling pilot 완료)
 
 이 문서에서 정하지 못한 사항은
 [재현 가능성 차이 및 처리 방침](01-reproducibility-gaps.md)에 등록한다.
@@ -297,9 +297,12 @@ patience가 공개되지 않았으므로 5를 구현 가정으로 사용하며 c
 단, 구조와 pipeline만 확인하는 smoke는 별도 config에서 고정 5 epoch와 checkpoint
 미보존을 사용하며 본 학습 성능으로 보고하지 않는다.
 
-저장된 원본 행렬과 첫 paper-oriented 학습은 raw traffic을 사용한다. 별도의
-모델 입력 scaling을 시험할 경우 독립 config와 실험 이름을 사용하고, 원래 결과를
-대체하지 않는다.
+저장된 원본 행렬과 첫 paper-oriented smoke는 raw traffic을 사용했다. 후속 제한
+pilot은 독립 config와 결과 경로에서 Train 20일 전체에만 적합한 셀별 Min-Max를
+시험했고, 사전 등록한 20% Validation MAE 개선 문턱을 통과했다. 따라서 본 학습은
+이 scaling을 후보 계약으로 사용하되 raw 결과를 대체하지 않는다. 근거는
+[LSTM Train-only 셀별 Min-Max scaling pilot](12-lstm-train-only-scaling-pilot.md)에
+기록한다.
 
 ### 10.2 비교 모델
 
@@ -345,6 +348,22 @@ UPC 미적용 모델 하나와 `train_only` cluster별 모델 둘을 각각 고�
 성능 우열이 아니라 정확한 parameter 수, 유한한 학습, Train MAE 감소와 900셀 예측
 재결합을 필수 gate로 사용한다. 구현과 결과는
 [중앙 900셀 LSTM·UPC Colab T4 pipeline smoke](11-lstm-upc-smoke.md)에 기록한다.
+
+### 10.5 본 학습용 LSTM scaling 후보
+
+첫 smoke의 raw-scale 과소학습 원인을 제한적으로 확인하기 위해 같은 900셀, 선택
+target, 모델, seed와 5 epoch를 유지하고 입력·target scaling만 바꾼다. 셀별
+최솟값과 범위는 Train 인덱스 `[0, 2880)` 전체에서만 적합하며 Validation/Test를
+사용하지 않는다. 변환과 역변환에는 clipping을 적용하지 않고 지표는 원래 traffic
+단위에서 계산한다.
+
+Test를 bundle에서도 제외한 Colab T4 pilot에서 UPC off Validation micro MAE는 raw
+`236.2853`에서 scaled `30.4308`로 `87.12%` 감소했다. 결과 전에 고정한 실질 개선
+문턱 `189.0282`를 통과해 셀별 Train-only Min-Max를 본 학습 후보로 채택했다. 이
+판정에 Persistence, UPC on/off 차이와 Test는 사용하지 않았다. 세부 계약과 두 번의
+결정적 실행은
+[LSTM Train-only 셀별 Min-Max scaling pilot](12-lstm-train-only-scaling-pilot.md)에
+기록한다.
 
 ## 11. 평가 계약
 
@@ -396,6 +415,7 @@ MAPE를 계산할 때 제외된 `y=0` 표본 수와 비율을 결과에 함께 �
 8. 중앙 900셀 LSTM 학습·평가 smoke와 UPC on/off 재결합 검증
    ([구현 및 실제 결과](11-lstm-upc-smoke.md))
 9. Train-only 모델 scaling의 제한 pilot과 본 학습 전처리 계약 확정
+   ([구현 및 실제 결과](12-lstm-train-only-scaling-pilot.md))
 10. 중앙 900셀 LSTM/RCTL, UPC on/off 3-seed 비교
 11. RCC 최소 ablation
 12. 최적 구성의 10,000셀 단일 확장 실험

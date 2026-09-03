@@ -320,9 +320,9 @@ colab stop --session gecos-lstm-upc-smoke
 | `data/processed/lstm_upc_smoke/per_cell_metrics.csv` | Test 셀별·정책별 MAE/MAPE/WAPE |
 | `data/processed/lstm_upc_smoke/manifest.json` | provenance, 환경, 실행시간, 출력 checksum |
 
-다음 우선 작업은 곧바로 3-seed 전체 비교를 소비하는 것이 아니라, 같은 선택 표본과
-고정 epoch에서 **Train 기간에만 적합한 모델 scaling**을 별도 config로 사전 등록해
-raw 결과와 비교하는 제한 pilot이다. 이 pilot의 목적은 좋은 수치를 골라내는 것이
-아니라 raw traffic 최적화가 짧은 학습에서 왜 포화되는지 확인하고, 본 학습의
-전처리 계약을 결과 전에 고정하는 데 있다. 그 뒤 전체 시간축, early stopping과
-seed `42, 43, 44`를 사용하는 중앙 900셀 LSTM/RCTL 비교로 넘어간다.
+후속 작업으로 같은 선택 표본과 고정 epoch에서 **Train 기간에만 적합한 모델
+scaling**을 별도 config로 사전 등록해 raw 결과와 비교했다. Test를 봉인한 제한
+pilot에서 셀별 Min-Max가 사전 개선 문턱을 통과했으며, 구현·판정 근거는
+[LSTM Train-only 셀별 Min-Max scaling pilot](12-lstm-train-only-scaling-pilot.md)에
+기록한다. 다음은 이 scaling 후보를 고정하고 전체 시간축, early stopping과 seed
+`42, 43, 44`를 사용하는 중앙 900셀 LSTM 본 비교다.

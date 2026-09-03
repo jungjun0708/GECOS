@@ -26,6 +26,7 @@ Urban Mobile Data Prediction with Geospatial Clustering and Dual Residual Learni
 - [UPC PCC 기반 최종 2개 클러스터](docs/09-upc-pcc-final-clusters.md)
 - [UPC 순서 민감도 검토와 프로토콜별 학습 정책](docs/10-upc-order-training-policy.md)
 - [중앙 900셀 LSTM·UPC Colab T4 pipeline smoke](docs/11-lstm-upc-smoke.md)
+- [LSTM Train-only 셀별 Min-Max scaling pilot](docs/12-lstm-train-only-scaling-pilot.md)
 - [데이터 디렉터리와 출처](data/README.md)
 
 현재 원본 무결성 검사, 메모리 제한 전처리, 중앙 900셀 공간 선택, UPC 초기 그룹과
@@ -35,7 +36,12 @@ Train 부분집합의 Colab T4 과적합 smoke, UPC PCC 기반 최종 2개 클�
 구현했다. LSTM smoke는 Table III의 `165,185` parameter를 정확히 재구성하고
 900셀 cluster 예측의 원래 순서 재결합과 두 번의 결정적 T4 실행을 검증했다. 다만
 raw traffic·고정 5 epoch 결과는 Persistence보다 크게 나빠 성능 결과가 아니라
-scaling과 본 학습 계약을 정하기 위한 과소학습 진단으로 보존한다. UPC의 명시
+scaling과 본 학습 계약을 정하기 위한 과소학습 진단으로 보존한다. 후속 제한
+pilot에서는 Train 20일에만 적합한 셀별 Min-Max scaling 하나만 바꿨고, Test를
+봉인한 Validation에서 UPC off LSTM MAE가 `236.2853`에서 `30.4308`로 `87.12%`
+감소했다. 결과 전 20% 개선 문턱을 통과했으므로 이를 전체 target 본 학습의 scaling
+후보로 채택했다. 이 역시 seed 1개·선택 target 진단이며 최종 Test 성능이나 UPC
+효과로 해석하지 않는다. UPC의 명시
 알고리즘과 Fig. 4 그룹 수가 정확히 일치하지 않는 문제는 결과에 맞춰 숨은 규칙을
 조정하지 않고 `GAP-UPC-06`으로 추적한다. 제한 감사 후 주 실험은 `train_only`,
 Algorithm 1 민감도 실험은 `algorithm1_full_month`로 고정했으며 Fig. 4 probe는 모델
