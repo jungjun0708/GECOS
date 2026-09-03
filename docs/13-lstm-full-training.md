@@ -169,9 +169,125 @@ job을 다시 시작한다.
 - 모든 Validation metric이 유한함
 - 성능 결과가 구조 gate에 사용되지 않음
 
-## 10. 실행 결과
+## 10. 구현 상태와 산출물
 
-결과 전 사전 등록 상태다. 코드와 합성 테스트를 구현하고 clean commit에서 입력을
-만든 뒤 Colab T4로 9개 job을 실행한다. 결과가 나온 뒤 이 절에 실제 best epoch,
-실행시간, peak RSS, Validation 지표와 output checksum을 추가하되 위 계약은 바꾸지
-않는다.
+사전 등록 뒤 다음 실행 경로를 구현했다.
+
+- `prepare_lstm_full_training.py`: source checksum을 재검증하고 전역 index
+  `[0, 3600)`만 담은 compact NPZ와 9개 immutable descriptor를 만든다.
+- `run_lstm_full_training_job.py`: descriptor 하나에 해당하는 셀만 window로 만들고
+  T4, 구조, early stopping, best-weight 복원과 Test 부재를 검사한다.
+- `colab_lstm_full_job_entry.py`: Colab 임시 workspace를 매 job 새로 만들고 네 결과
+  파일만 ZIP으로 회수한다.
+- `aggregate_lstm_full_validation.py`: 9개 job과 checkpoint checksum을 검증하고
+  cluster 예측을 원래 900셀 순서로 재결합한 뒤 Validation 지표를 집계한다.
+- `test_lstm_full_pipeline.py`: Test 경계, scaler, window, cluster 순서, 음수 선형 출력,
+  seed 표본표준편차를 작은 합성 배열로 검사한다.
+
+실행 중 생성되는 파일은 모두 `.gitignore`로 보호된 전용 경로에 둔다.
+
+| 경로 | 역할 |
+|---|---|
+| `data/interim/lstm_full_training/train_validation_input.npz` | Test 없는 compact 입력 |
+| `data/interim/lstm_full_training/train_validation_input_manifest.json` | source·배열 checksum과 Test seal |
+| `data/interim/lstm_full_training/job_descriptors/*.json` | seed·조건별 immutable job 9개 |
+| `data/processed/lstm_full_training/jobs/<job_id>/best_weights.npz` | best scaled Validation epoch의 weights |
+| `data/processed/lstm_full_training/jobs/<job_id>/validation_predictions.npz` | 해당 셀의 Validation 예측·mask |
+| `data/processed/lstm_full_training/jobs/<job_id>/training_report.json` | history, best epoch와 구조 gate |
+| `data/processed/lstm_full_training/jobs/<job_id>/run_manifest.json` | T4 환경·시간·출력 checksum |
+| `data/processed/lstm_full_training/validation_report.json` | seed별 결과와 평균·표본표준편차 |
+| `data/processed/lstm_full_training/validation_release_manifest.json` | 향후 잠긴 Test 평가 입력을 고정할 release |
+
+## 11. 실행 방법
+
+### 11.1 로컬 입력 준비
+
+먼저 구현을 commit하여 Git 상태를 clean으로 만든 뒤 실행한다. 입력 준비기가 dirty
+상태를 거부하므로 결과 전 등록한 코드와 실제 Colab 코드가 달라지는 일을 막는다.
+
+```bash
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python -m scripts.prepare_lstm_full_training \
+  --config configs/lstm_full_training_milan_nov2013.json
+```
+
+### 11.2 최소 Colab bundle
+
+원시 데이터, 전체 4,320시점 배열, 논문 PDF와 기존 결과는 업로드하지 않는다. 아래
+코드 의존성과 Test가 없는 compact 입력만 ZIP에 넣는다.
+
+```bash
+zip -FS data/interim/lstm_full_training/colab_bundle.zip \
+  scripts/__init__.py \
+  scripts/build_upc_initial_groups.py \
+  scripts/evaluate_naive_baselines.py \
+  scripts/forecast_contract.py \
+  scripts/lstm_contract.py \
+  scripts/lstm_full_contract.py \
+  scripts/lstm_model.py \
+  scripts/lstm_scaling_contract.py \
+  scripts/prepare_lstm_full_training.py \
+  scripts/prepare_lstm_scaling_pilot.py \
+  scripts/prepare_lstm_upc_smoke.py \
+  scripts/rctl_contract.py \
+  scripts/rctl_model.py \
+  scripts/run_lstm_full_training_job.py \
+  scripts/run_lstm_upc_smoke.py \
+  scripts/validate_upc_training_policy.py \
+  configs/lstm_full_training_milan_nov2013.json \
+  configs/lstm_scaling_pilot_milan_nov2013.json \
+  configs/lstm_upc_smoke_milan_nov2013.json \
+  requirements/model.txt \
+  data/interim/lstm_full_training/train_validation_input.npz \
+  data/interim/lstm_full_training/train_validation_input_manifest.json
+```
+
+### 11.3 `google-colab-cli` job 실행
+
+T4 세션 하나에 bundle을 한 번 올리고 descriptor를 하나씩 교체하여 순차 실행한다.
+각 결과 ZIP은 job ID가 들어간 로컬 파일명으로 즉시 회수하고 검사한다. 한 job의
+실패가 다른 job의 산출물을 덮어쓰지 않는다.
+
+```bash
+colab new --session gecos-lstm-full --gpu T4
+colab exec --session gecos-lstm-full \
+  --file scripts/probe_colab_runtime.py --timeout 120
+colab upload --session gecos-lstm-full \
+  data/interim/lstm_full_training/colab_bundle.zip \
+  /content/gecos_lstm_full_training_bundle.zip
+
+for job in data/interim/lstm_full_training/job_descriptors/*.json; do
+  job_id="$(basename "$job" .json)"
+  colab upload --session gecos-lstm-full \
+    "$job" /content/gecos_lstm_full_job.json
+  colab exec --session gecos-lstm-full \
+    --file scripts/colab_lstm_full_job_entry.py --timeout 7500
+  colab download --session gecos-lstm-full \
+    /content/gecos_lstm_full_job_outputs.zip \
+    "data/interim/lstm_full_training/${job_id}_outputs.zip"
+  unzip -t "data/interim/lstm_full_training/${job_id}_outputs.zip"
+  unzip -o "data/interim/lstm_full_training/${job_id}_outputs.zip" -d .
+done
+
+colab stop --session gecos-lstm-full
+```
+
+세션은 성공·실패와 관계없이 종료한다. 인프라 오류가 난 job은 descriptor와 bundle을
+바꾸지 않고 그 job만 재실행한다. wall-clock 상한이나 4GiB soft RSS를 넘으면 표본,
+batch 또는 epoch를 즉석에서 축소하지 않고 구현 변경을 별도 commit으로 남긴다.
+
+### 11.4 Validation 집계
+
+```bash
+.venv/bin/python -m scripts.aggregate_lstm_full_validation \
+  --config configs/lstm_full_training_milan_nov2013.json
+```
+
+집계기는 9개 job이 전부 존재하지 않으면 실패한다. 이번 명령은 Test 배열을 읽거나
+Test 지표를 계산하지 않는다.
+
+## 12. 실행 결과
+
+현재는 구현과 합성 회귀 검증을 마쳤고 전체 T4 실행 전 상태다. 결과가 나온 뒤 이
+절에 실제 best epoch, 실행시간, peak RSS, Validation 지표와 output checksum을
+추가하되 1~9절의 사전 등록 계약은 바꾸지 않는다.
