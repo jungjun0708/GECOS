@@ -288,6 +288,131 @@ Test 지표를 계산하지 않는다.
 
 ## 12. 실행 결과
 
-현재는 구현과 합성 회귀 검증을 마쳤고 전체 T4 실행 전 상태다. 결과가 나온 뒤 이
-절에 실제 best epoch, 실행시간, peak RSS, Validation 지표와 output checksum을
-추가하되 1~9절의 사전 등록 계약은 바꾸지 않는다.
+### 12.1 실행 provenance와 자원
+
+사전 등록 뒤 commit `57030bd6dd6757ca7ebfac3ea8700e9a1bbcbc16`의 clean
+상태에서 입력을 만들었다. compact 입력 SHA-256은
+`bdcafbfa1ee04e12d01f64e120648dc70b3b778a3206f722e24c2031a8a87321`이며 크기는
+11,231,547 bytes다. 로컬 준비 peak RSS는 151,740,416 bytes, 약 144.7MiB로
+256MiB 상한을 통과했다.
+
+모든 job은 Colab Tesla T4 15,360MiB, Python 3.13.15, NumPy 2.1.3,
+TensorFlow 2.20.0, Keras 3.13.2에서 실행했다. 성공해 보존한 9개 job의 순수 fit
+시간 합은 3,902.57초, 약 65.0분이다. 관측한 세션 누적 peak RSS 최댓값은
+2,324,791,296 bytes, 약 2.17GiB로 4GiB soft limit 안이다.
+
+seed 44 cluster 0의 첫 실행은 학습 gate를 모두 통과하고 best epoch를 출력한 직후
+Colab VM이 404/401로 소실되어 결과 ZIP을 회수하지 못했다. 서버에 남은 이름 없는
+orphan T4를 해제한 뒤 동일 commit·bundle·descriptor로 그 job만 다시 실행했다.
+재실행의 best epoch와 scaled Validation MAE는 첫 실행과 동일한 3과
+`0.03194784000515938`이었다. 이는 등록한
+`rerun_only_same_immutable_job_after_infrastructure_failure` 정책에 해당하며, 결과를
+보고 설정을 바꾼 재시도가 아니다.
+
+### 12.2 job별 early stopping 결과
+
+| seed | 조건 | 셀 | 완료 epoch | best epoch | best scaled Validation MAE | fit 초 |
+|---:|---|---:|---:|---:|---:|---:|
+| 42 | UPC off | 900 | 13 | 8 | 0.03338347 | 708.25 |
+| 42 | UPC on cluster 0 | 611 | 8 | 3 | 0.03200935 | 279.36 |
+| 42 | UPC on cluster 1 | 289 | 19 | 14 | 0.03578634 | 324.98 |
+| 43 | UPC off | 900 | 13 | 8 | 0.03330174 | 739.90 |
+| 43 | UPC on cluster 0 | 611 | 8 | 3 | 0.03200490 | 273.40 |
+| 43 | UPC on cluster 1 | 289 | 20 | 15 | 0.03572622 | 329.45 |
+| 44 | UPC off | 900 | 12 | 7 | 0.03340585 | 648.48 |
+| 44 | UPC on cluster 0 | 611 | 8 | 3 | 0.03194784 | 248.99 |
+| 44 | UPC on cluster 1 | 289 | 23 | 18 | 0.03571745 | 349.76 |
+
+조건별 최적 epoch가 3부터 18까지 달라 고정 5 epoch만으로 UPC off/on을 비교하면
+조건에 따라 과소학습 또는 이미 악화가 시작된 weights를 비교할 수 있음을 확인했다.
+scaled MAE는 셀 범위가 다른 cluster 모델의 선택값일 뿐이므로 cluster 간 성능값으로
+직접 비교하지 않는다.
+
+### 12.3 전체 Validation 결과
+
+다음은 720개 Validation target/셀, `all_targets`, micro 집계의 seed 평균 ± 표본
+표준편차다. MAPE는 읽기 쉬운 percent 단위이며 WAPE는 ratio 단위다.
+
+| 모델 | MAE | MAPE | WAPE |
+|---|---:|---:|---:|
+| LSTM UPC off | 28.3164 ± 0.0610 | 11.4516% ± 0.1371%p | 0.102404 ± 0.000221 |
+| LSTM UPC on | 28.2098 ± 0.0407 | 10.7346% ± 0.0377%p | 0.102019 ± 0.000147 |
+
+결측·Internet 전체 null target 796개를 제외한 `observed_targets_only` micro 결과는
+다음과 같다. MAPE는 원래도 양수 target만 사용하므로 이 데이터에서는
+`all_targets`와 같다.
+
+| 모델 | MAE | MAPE | WAPE |
+|---|---:|---:|---:|
+| LSTM UPC off | 28.3512 ± 0.0611 | 11.4516% ± 0.1371%p | 0.102404 ± 0.000221 |
+| LSTM UPC on | 28.2445 ± 0.0408 | 10.7346% ± 0.0377%p | 0.102019 ± 0.000147 |
+
+`all_targets`의 cell-macro 평균은 UPC off/on 순서로 MAE `28.3164/28.2098`, MAPE
+`12.0447%/11.1765%`, WAPE `0.115408/0.111791`이다. 모든 셀이 같은 720개 target을
+갖는 `all_targets`에서는 micro MAE와 cell-macro MAE가 같지만, WAPE와 MAPE는
+분모와 셀별 비율 평균 방식이 달라 서로 같지 않다.
+
+### 12.4 해석: scaling과 UPC에서 배운 점
+
+같은 중앙 900셀 Validation의 기존 Persistence는 MAE `31.9310`, MAPE
+`12.9357%`, WAPE `0.115476`이었다. 이에 비해 3-seed 평균 LSTM UPC off는 MAE와
+WAPE가 약 11.32%, UPC on은 약 11.65% 낮았다. 이 비교는 full LSTM이 raw 5 epoch
+smoke의 심한 과소학습을 벗어났고 Train-only 셀별 scaling과 early stopping이 실제
+전체 target에서도 유효했음을 보여준다.
+
+UPC on은 세 seed 모두 off보다 낮았다. on−off paired 차이의 평균 ± 표본표준편차는
+MAE `-0.1066 ± 0.0922`, MAPE `-0.7170 ± 0.0993%p`, WAPE
+`-0.000385 ± 0.000334`다. 상대 개선은 MAE와 WAPE에서 약 0.38%, MAPE에서 약
+6.26%다. 따라서 현재 Validation에서는 UPC가 일관된 방향의 작은 MAE/WAPE 개선과
+더 큰 MAPE 개선을 보였다고 말할 수 있다. 다만 seed가 3개뿐이고 Validation을 모델
+선택에 사용했으므로 “일반화 성능 향상이 확정됐다”거나 논문의 clustering 효과를
+그대로 재현했다고 주장하지 않는다.
+
+특히 MAPE는 traffic이 작은 양수 target의 상대오차 영향을 크게 받는다. UPC 효과를
+MAPE 하나로 과장하지 않고 MAE·WAPE와 함께 해석한다. 이번 성능값은 pipeline 통과
+gate가 아니며, UPC on이 나빴더라도 둘 다 다음 잠긴 평가 후보로 보존했을 것이다.
+
+선형 출력과 무클리핑 계약에서 raw 단위 음수 Validation 예측은 seed 42/43/44의 UPC
+off가 각각 `2/1/1`개, 재결합한 UPC on이 `26/22/21`개였다. 최솟값은 off
+`-0.07198`, on `-0.55696`으로 전체 648,000개 예측 중 매우 드물지만 0은 아니다.
+결과를 좋게 만들기 위해 0으로 자르지 않았고 `GAP-LSTM-02`의 저자 출력 activation
+불명확성은 유지한다.
+
+### 12.5 gate, 결정성 및 출력 고정
+
+다음 gate가 모두 통과했다.
+
+- clean source commit과 입력·config·descriptor checksum 일치
+- 9개 job의 `165,185` parameter, 유한 history·weights·prediction
+- callback best weights와 저장 직전 모델 weights의 배열 단위 exact 일치
+- cluster별 예측의 900셀 원래 순서 exact 재결합
+- 두 target 정책과 micro/cell-macro의 유한 Validation 지표
+- 입력, job output과 집계 output에 Test 배열·평가 없음
+- Persistence 우위 또는 UPC 개선 여부를 통과 조건으로 사용하지 않음
+
+집계를 두 번 실행했을 때 다음 핵심 파일은 바이트 단위로 같았다.
+
+| 산출물 | SHA-256 |
+|---|---|
+| `training_jobs.csv` | `1efded3de1401c77a508db8855a8240655402b5c5bc835c4aa46be5665538ae1` |
+| `validation_report.json` | `fb3ec426f1db258754af5c4fb01f2efb957014db2770c9a3e79e5a9493ffdd60` |
+| `validation_predictions.npz` | `bac2a783dfe514cd268b070495d5ca40ae3978b887770b9bd081350325341e1b` |
+| `validation_per_cell_metrics.csv` | `bb816deec0bc3555feb066a93a3d8657b3e9b529fca2ca59ac38f14fd32cea05` |
+| `validation_release_manifest.json` | `5cb81e6c20411369069f6b9821b1f22938bdf3c096f927d39a61fa07c839ee88` |
+
+`aggregation_manifest.json`은 실행시각과 소요 시간을 포함하므로 재실행 때 hash가
+달라지는 것이 정상이다. release manifest는 9개 descriptor, training report,
+Validation prediction, best checkpoint와 run manifest hash를 모두 고정하며 상태는
+`ready_for_locked_test_evaluation`이다.
+
+### 12.6 결론과 다음 경계
+
+이번 단계의 결론은 **전체 Train·Validation LSTM 학습 경로가 재현 가능하게
+완료됐고, UPC off/on 두 후보가 잠겼다**는 것이다. 아직 Test를 실행하지 않았으므로
+이 문서의 수치는 최종 성능이 아니다. 또한 이전 raw smoke의 Test 노출 때문에 다음
+평가도 pristine holdout이 아니라
+`locked final evaluation with prior raw-smoke exposure`로 표시해야 한다.
+
+다음 변경에서는 위 release SHA를 입력으로 고정한 Test 전용 bundle과 일회성
+평가기만 추가한다. Test를 본 뒤 scaler, epoch, seed, clipping, UPC membership 또는
+모델 구조를 바꾸지 않는다.

@@ -27,29 +27,25 @@ Urban Mobile Data Prediction with Geospatial Clustering and Dual Residual Learni
 - [UPC 순서 민감도 검토와 프로토콜별 학습 정책](docs/10-upc-order-training-policy.md)
 - [중앙 900셀 LSTM·UPC Colab T4 pipeline smoke](docs/11-lstm-upc-smoke.md)
 - [LSTM Train-only 셀별 Min-Max scaling pilot](docs/12-lstm-train-only-scaling-pilot.md)
+- [중앙 900셀 LSTM 전체 Train·Validation 학습](docs/13-lstm-full-training.md)
 - [데이터 디렉터리와 출처](data/README.md)
 
 현재 원본 무결성 검사, 메모리 제한 전처리, 중앙 900셀 공간 선택, UPC 초기 그룹과
 Fig. 4 제한 감사, 공통 예측 계약과 학습 없는 두 기준선, RCTL 구조 감사와 실제
 Train 부분집합의 Colab T4 과적합 smoke, UPC PCC 기반 최종 2개 클러스터와
-프로토콜별 학습 정책, 중앙 900셀 LSTM의 UPC 적용 전·후 pipeline smoke까지
-구현했다. LSTM smoke는 Table III의 `165,185` parameter를 정확히 재구성하고
-900셀 cluster 예측의 원래 순서 재결합과 두 번의 결정적 T4 실행을 검증했다. 다만
-raw traffic·고정 5 epoch 결과는 Persistence보다 크게 나빠 성능 결과가 아니라
-scaling과 본 학습 계약을 정하기 위한 과소학습 진단으로 보존한다. 후속 제한
-pilot에서는 Train 20일에만 적합한 셀별 Min-Max scaling 하나만 바꿨고, Test를
-봉인한 Validation에서 UPC off LSTM MAE가 `236.2853`에서 `30.4308`로 `87.12%`
-감소했다. 결과 전 20% 개선 문턱을 통과했으므로 이를 전체 target 본 학습의 scaling
-후보로 채택했다. 이 역시 seed 1개·선택 target 진단이며 최종 Test 성능이나 UPC
-효과로 해석하지 않는다. UPC의 명시
-알고리즘과 Fig. 4 그룹 수가 정확히 일치하지 않는 문제는 결과에 맞춰 숨은 규칙을
-조정하지 않고 `GAP-UPC-06`으로 추적한다. 제한 감사 후 주 실험은 `train_only`,
-Algorithm 1 민감도 실험은 `algorithm1_full_month`로 고정했으며 Fig. 4 probe는 모델
-입력으로 사용하지 않는다. PCC 병합 결과 `train_only`은 남은 그룹 순서를 뒤집어도
-membership이 같았지만 전체 월 경로는 50.48%만 일치했다. 이에 따라 누수 없는
-`train_only`만 주 모델 학습에 허용하고 전체 월과 Fig. 4 probe는 차단하는 정책으로
-`GAP-UPC-07`의 학습 범위를 결정했다. 기준선은 엄격한 20/5/5 시간 분할에서 Persistence가
-일간 계절성 naive보다 강함을 확인했다. 각 단계는 입력·출력 checksum과 합성 테스트로
-검증하며, 논문에서 공개하지 않은 중앙 셀 목록은 `central-900-approximate`
-프로토콜로 명시한다. 논문 그림 해석형 RCTL의 parameter 수는 논문 표와 일치하지
-않아 공개 코드형과 분리하고 `GAP-RCTL-01`부터 `GAP-RCTL-05`로 추적한다.
+프로토콜별 학습 정책과 중앙 900셀 LSTM 전체 Train·Validation 학습까지 구현했다.
+각 단계는 입력·출력 checksum과 합성 테스트로 검증하며, 논문에서 공개하지 않은
+중앙 셀 목록은 `central-900-approximate`로 명시한다. UPC의 명시 알고리즘과 Fig. 4
+그룹 수 불일치는 결과에 맞춘 숨은 규칙으로 메우지 않고 `GAP-UPC-06`, 순서 민감도와
+학습 허용 범위는 `GAP-UPC-07`로 추적한다. 논문 그림 해석형 RCTL의 parameter 수도
+논문 표와 일치하지 않아 공개 코드형과 분리하고 `GAP-RCTL-01`부터
+`GAP-RCTL-05`로 기록한다.
+
+LSTM raw 5 epoch smoke의 과소학습을 확인한 뒤 Train 20일에만 적합한 셀별 Min-Max
+scaling을 제한 pilot으로 채택했다. 이어 모든 Train target, seed `42/43/44`,
+Validation early stopping으로 UPC off 3개와 cluster별 UPC on 6개 job을 Colab T4에서
+완료했다. Test를 제외한 Validation `all_targets` micro 평균에서 UPC off/on은 각각
+MAE `28.3164/28.2098`, MAPE `11.4516%/10.7346%`, WAPE
+`0.102404/0.102019`였다. UPC on의 MAE·WAPE 개선은 약 0.38%로 작으므로 MAPE 하나로
+효과를 과장하지 않는다. 9개 best checkpoint와 Validation 결과는 release manifest로
+잠갔으며, 아직 최종 Test 평가는 실행하지 않았다.

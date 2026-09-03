@@ -209,10 +209,15 @@
   Validation에서는 역변환 후 UPC off 2개, UPC on 41개의 작은 음수 예측이 있었고
   최솟값은 각각 약 `-0.00659`, `-0.03244`였다. clipping 없이 그대로 평가했으며
   저자의 출력 계약이 확인되지 않았으므로 gap은 유지한다.
+- 본 학습 결과: seed `42/43/44`의 전체 Validation에서 UPC off 음수 예측은 각각
+  `2/1/1`개, cluster 재결합 UPC on은 `26/22/21`개였다. seed별 최솟값 중 가장 작은
+  값은 각각 약 `-0.07198`, `-0.55696`이었다. 사전 등록대로 0 clipping 없이 원시
+  예측을 평가했으며, 비음수 출력이나 후처리 효과는 별도 실험 없이는 주장하지 않는다.
+- 상세 기록: [중앙 900셀 LSTM 전체 Train·Validation 학습](13-lstm-full-training.md)
 
 ### GAP-LSTM-03: scaling 후 early stopping 지표 단위가 공개되지 않음
 
-- 상태: `본 학습 구현 가정 사전 등록·저자 설정은 외부 정보 필요`
+- 상태: `본 학습 구현 가정 적용 완료·저자 설정은 외부 정보 필요`
 - 논문: 모델 입력·target scaling 여부와 early stopping의 감시 지표 단위를
   공개하지 않는다.
 - 영향: 셀별 scaling 공간의 MAE는 셀마다 비슷한 가중치를 주지만, 원래 traffic
@@ -222,6 +227,10 @@
   `val_loss`를 감시한다. 원래 traffic 단위 MAE·MAPE·WAPE는 역변환 후 보고하되
   best epoch 선택에는 사용하지 않는다. 결과를 본 뒤 감시 단위를 바꾸지 않으며,
   다른 단위는 별도 사전 등록 실험으로만 비교한다.
+- 구현 결과: 9개 job의 best epoch는 UPC off `7~8`, cluster 0은 모두 `3`, cluster
+  1은 `14~18`이었다. 조건별 최저점이 달라 고정 epoch 대신 사전 등록한 감시 단위를
+  적용할 필요가 실제로 확인됐다. 모든 best weights는 callback 배열과 exact
+  일치했지만 이것이 저자의 감시 단위였다는 뜻은 아니므로 gap은 유지한다.
 - 상세 기록: [중앙 900셀 LSTM 전체 Train·Validation 학습](13-lstm-full-training.md)
 
 ## 5. 데이터와 표본 생성
@@ -240,7 +249,7 @@
 
 ### GAP-DATA-02: scaling 대상과 적합 기간이 불명확함
 
-- 상태: `본 학습 후보 결정 완료·저자 설정은 외부 정보 필요`
+- 상태: `본 LSTM 학습 적용 완료·저자 설정은 외부 정보 필요`
 - 논문: UPC 입력이 min-max scaled라고 설명하지만 셀별/전체 기준과 모델 입력
   scaling 여부를 공개하지 않는다.
 - 영향: 그룹 평균 profile과 모델 최적화가 달라질 수 있다.
@@ -254,6 +263,11 @@
   미공개 저자 설정으로 확정하지 않는다. 상세 근거는
   [LSTM Train-only 셀별 Min-Max scaling pilot](12-lstm-train-only-scaling-pilot.md)에
   기록한다.
+- 본 학습 결과: 같은 scaler를 9개 전체 job에 고정한 결과 `all_targets` Validation
+  micro seed 평균 MAE는 UPC off `28.3164`, UPC on `28.2098`이었다. 선택 target
+  pilot보다 넓은 모든 720 target/셀에서도 raw smoke의 과소학습은 나타나지 않았다.
+  결과와 checkpoint 고정은
+  [중앙 900셀 LSTM 전체 Train·Validation 학습](13-lstm-full-training.md)에 기록한다.
 
 ### GAP-DATA-03: 길이 `q`와 예측 target 정렬이 불명확함
 

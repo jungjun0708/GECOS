@@ -300,9 +300,10 @@ patience가 공개되지 않았으므로 5를 구현 가정으로 사용하며 c
 저장된 원본 행렬과 첫 paper-oriented smoke는 raw traffic을 사용했다. 후속 제한
 pilot은 독립 config와 결과 경로에서 Train 20일 전체에만 적합한 셀별 Min-Max를
 시험했고, 사전 등록한 20% Validation MAE 개선 문턱을 통과했다. 따라서 본 학습은
-이 scaling을 후보 계약으로 사용하되 raw 결과를 대체하지 않는다. 근거는
+이 scaling을 고정 계약으로 사용했으며 raw 결과를 대체하지 않는다. 선택 근거는
 [LSTM Train-only 셀별 Min-Max scaling pilot](12-lstm-train-only-scaling-pilot.md)에
-기록한다.
+기록하고 전체 학습 결과는
+[중앙 900셀 LSTM 전체 Train·Validation 학습](13-lstm-full-training.md)에 기록한다.
 
 ### 10.2 비교 모델
 
@@ -365,6 +366,20 @@ Test를 bundle에서도 제외한 Colab T4 pilot에서 UPC off Validation micro 
 [LSTM Train-only 셀별 Min-Max scaling pilot](12-lstm-train-only-scaling-pilot.md)에
 기록한다.
 
+### 10.6 중앙 900셀 LSTM 전체 Train·Validation 결과
+
+채택한 scaling, 모든 Train target, Validation early stopping과 seed `42, 43, 44`를
+사용해 UPC off 3개와 cluster별 UPC on 6개 job을 Colab T4에서 완료했다. 각 job의
+best weights를 복원·보존하고 cluster 예측을 원래 900셀 순서로 exact 재결합했다.
+
+Test를 제외한 `all_targets` Validation micro seed 평균에서 UPC off/on은 각각 MAE
+`28.3164/28.2098`, MAPE `11.4516%/10.7346%`, WAPE
+`0.102404/0.102019`였다. UPC on의 MAE·WAPE 상대 개선은 약 0.38%로 작고 MAPE
+개선은 약 6.26%였다. 성능은 pipeline gate가 아니며 Test 결과로 해석하지 않는다.
+9개 checkpoint와 결과 checksum은 Test 전 release manifest로 고정했다. 상세 계약,
+job별 best epoch와 해석은
+[중앙 900셀 LSTM 전체 Train·Validation 학습](13-lstm-full-training.md)에 기록한다.
+
 ## 11. 평가 계약
 
 ### 11.1 필수 지표
@@ -416,9 +431,11 @@ MAPE를 계산할 때 제외된 `y=0` 표본 수와 비율을 결과에 함께 �
    ([구현 및 실제 결과](11-lstm-upc-smoke.md))
 9. Train-only 모델 scaling의 제한 pilot과 본 학습 전처리 계약 확정
    ([구현 및 실제 결과](12-lstm-train-only-scaling-pilot.md))
-10. 중앙 900셀 LSTM/RCTL, UPC on/off 3-seed 비교
-11. RCC 최소 ablation
-12. 최적 구성의 10,000셀 단일 확장 실험
+10. 중앙 900셀 LSTM UPC on/off 3-seed Train·Validation 비교와 checkpoint 고정
+    ([구현 및 실제 결과](13-lstm-full-training.md))
+11. 같은 계약의 중앙 900셀 RCTL UPC on/off 비교
+12. RCC 최소 ablation
+13. 최적 구성의 10,000셀 단일 확장 실험
 
 다음 조건에서는 뒤 단계로 넘어가지 않는다.
 
