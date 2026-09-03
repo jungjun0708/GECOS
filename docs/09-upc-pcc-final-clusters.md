@@ -259,14 +259,13 @@ manifest는 실행 시각과 소요 시간을 포함하므로 매번 달라진�
 가깝거나 cluster 크기가 균형적이라는 이유로 결과를 사후 선택하면 재현이 아니라
 튜닝이 된다.
 
-현재 최우선 후속 작업은 고비용 LSTM/RCTL 실행이 아니다. 먼저 제한된 설계 검토에서
-다음을 결정해야 한다.
+후속 제한 설계 검토에서 오름차순을 재현 경로로 유지하고, 순서 불변 대안은 별도
+확장 실험으로 미루며, 순서에 안정적인 `train_only`만 주 모델 학습에 허용하기로
+결정했다. 전체 월 신경망 민감도는 보류하고 Fig. 4 probe는 계속 금지한다.
 
-1. 논문에 명시된 것으로 볼 수 있는 오름차순만 재현 경로로 유지할지,
-2. 순서 불변 대안은 별도 확장 실험으로만 둘지,
-3. 전체 월 민감도 모델을 보류하고 순서에 안정적인 `train_only` 주 분석만 먼저
-   학습할지.
-
-이 결정 전에는 결과를 보고 순서를 더 탐색하거나 모델 성능으로 membership을 선택하지
-않는다. 현재 manifest는 이 중단선을 `ready_for_expensive_model_training=false`로
-기록한다.
+현재 clustering manifest의 `ready_for_expensive_model_training=false`는 두
+프로토콜을 함께 본 보수적인 계산 시점의 중단선이므로 수정하지 않는다. 별도 학습
+정책에서 `ready_for_primary_model_training=true`와 전체 프로토콜 gate `false`를
+나란히 기록한다. 근거, 자동 검증과 후속 사용 규칙은
+[UPC 순서 민감도 검토와 프로토콜별 학습 정책](10-upc-order-training-policy.md)에
+기록했다.

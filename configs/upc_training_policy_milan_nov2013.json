@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "name": "milan-internet-2013-11-upc-training-policy",
+  "decision_stage": "post_clustering_pre_model",
+  "inputs": {
+    "pcc_config": "configs/upc_pcc_milan_nov2013.json",
+    "pcc_config_sha256": "60fdc27b0b5d486001b7259121e5b5e3e13b59a4f6210645bf95902fb1c9b20d",
+    "pcc_manifest": "data/processed/upc/final_clusters/manifest.json",
+    "required_pcc_manifest_status": "complete_with_upstream_diagnostic_mismatch_and_order_sensitivity_review",
+    "protected_output_sha256": {
+      "group_assignments_csv": "9f5839a499ba81f2b69ae3f0819b6a3a3e91de20f204dbdd12d0b3165a88440d",
+      "all_cell_memberships_csv": "d5a1bdd49d8b40f8f5d6e85754e67aea9a580aad80e77e52d2c0ac972cc2b0bb",
+      "central_900_memberships_csv": "9cb60b83013ec953256a9e182e51f52ffddf9ea2aa5ae473740f7f413b5086fa",
+      "summary_json": "09fbddbd2bf3f8a533578e9a7c7f518c14807b3074cfce53615520bfac946ab9"
+    }
+  },
+  "thresholds": {
+    "minimum_order_sensitivity_agreement": 0.95,
+    "numeric_tolerance": 1e-12
+  },
+  "observed_evidence": {
+    "train_only_order_agreement": 1.0,
+    "algorithm1_full_month_order_agreement": 0.5048,
+    "algorithm1_full_month_changed_group_ids": [
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "algorithm1_full_month_changed_cell_count": 4952
+  },
+  "policy": {
+    "primary_training_protocol": "train_only",
+    "allowed_model_training_protocols": [
+      "train_only"
+    ],
+    "blocked_model_training_protocols": [
+      "algorithm1_full_month",
+      "figure4_probe_complete_weeks_mean_profile"
+    ],
+    "reproduction_assignment_order": "ascending_group_id",
+    "order_sensitivity_role": "diagnostic_only",
+    "full_month_neural_training": "deferred_until_separate_explicit_decision",
+    "figure4_probe_training": "forbidden",
+    "order_invariant_extension": "deferred_separate_non_reproduction_experiment",
+    "model_performance_used_for_decision": false
+  },
+  "outputs": {
+    "policy": "data/processed/upc/training_policy.json",
+    "manifest": "data/processed/upc/training_policy_manifest.json"
+  }
+}

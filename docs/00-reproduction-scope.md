@@ -11,7 +11,7 @@
 - 논문 DOI: <https://doi.org/10.1109/TNSM.2025.3599168>
 - 원저자 공개 코드: <https://github.com/Superint-Lab/GECOS>
 - 데이터: <https://doi.org/10.7910/DVN/EGZHFV>
-- 문서 상태: 실행 계약 v1 (UPC PCC 최종 군집 및 순서 민감도 검사 완료)
+- 문서 상태: 실행 계약 v1 (UPC 주 학습 프로토콜 허용 정책 확정)
 
 이 문서에서 정하지 못한 사항은
 [재현 가능성 차이 및 처리 방침](01-reproducibility-gaps.md)에 등록한다.
@@ -259,6 +259,23 @@ Fig. 4와 가까운 완전한 4주 평균-profile 계산은 `figure4_probe`로 �
 불일치는 독립 기준선 진행을 막지 않는다. 결정 근거는
 [UPC Fig. 4 불일치 제한 감사](06-upc-fig4-bounded-audit.md)에 기록한다.
 
+### 9.4 프로토콜별 학습 허용 정책
+
+PCC 순서 민감도 검사 후 clustering manifest의 보수적인 전역 학습 gate는 그대로
+보존하고, 후속 모델 학습 허용 여부를 별도 정책으로 관리한다.
+
+| 프로토콜 | 학습 허용 | 근거 |
+|---|---|---|
+| `train_only` | 예 | 누수 없는 주 프로토콜이며 오름·내림 membership 100% 일치 |
+| `algorithm1_full_month` | 아니요 | 순서 일치율 50.48%, clustering 민감도로만 보존 |
+| Fig. 4 probe | 아니요 | 미공개 진단 가설로 모델 입력 금지 |
+
+이 결정은 PCC 결과 확인 후 모델 결과 확인 전에 내린
+`post_clustering_pre_model` 범위 결정이다. 모델 성능이나 cluster 균형으로
+membership을 선택하지 않는다. 설정, 자동 검증과 근거는
+[UPC 순서 민감도 검토와 프로토콜별 학습 정책](10-upc-order-training-policy.md)에
+기록한다.
+
 ## 10. 모델 계약
 
 ### 10.1 공통 학습 설정
@@ -359,16 +376,19 @@ MAPE를 계산할 때 제외된 `y=0` 표본 수와 비율을 결과에 함께 �
 6. UPC 초기 그룹을 PCC로 최종 `N=2` cluster에 병합
    ([구현 및 실제 결과](09-upc-pcc-final-clusters.md))
 7. PCC 순차 배정의 미공개 순서에 대한 제한 설계 검토
-8. 중앙 900셀 LSTM/RCTL, UPC on/off 비교
-9. RCC 최소 ablation
-10. 최적 구성의 10,000셀 단일 확장 실험
+   ([정책 결정 및 자동 검증](10-upc-order-training-policy.md))
+8. 중앙 900셀 LSTM 학습·평가 smoke와 UPC on/off 재결합 검증
+9. 중앙 900셀 LSTM/RCTL, UPC on/off 3-seed 비교
+10. RCC 최소 ablation
+11. 최적 구성의 10,000셀 단일 확장 실험
 
 다음 조건에서는 뒤 단계로 넘어가지 않는다.
 
 - 데이터 shape, timestamp 또는 checksum이 비결정적임
 - window에 미래 값이 포함되는 테스트가 실패함
 - UPC 초기 그룹 합계가 10,000이 아님
-- UPC 순서 민감도 일치율이 사전 등록한 95%보다 낮은데 처리 방침이 결정되지 않음
+- 학습 config가 UPC 정책에서 허용하지 않은 프로토콜을 요청함
+- 보호한 UPC membership 또는 정책 checksum이 변경됨
 - 모델이 작은 표본을 의도적으로 overfit하지 못함
 - 실행 metadata가 누락됨
 
