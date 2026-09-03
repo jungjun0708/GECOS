@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "name": "milan-central-900",
+  "protocol": "central-900-approximate",
+  "grid_reference_manifest": "metadata/milano_grid.json",
+  "inputs": {
+    "grid_geojson": "data/raw/milano-grid.geojson",
+    "processed_manifest": "data/processed/manifest.json",
+    "traffic": "data/processed/traffic.npy",
+    "cell_ids": "data/processed/cell_ids.npy",
+    "timestamps_ms": "data/processed/timestamps_ms.npy",
+    "missing_mask": "data/processed/missing_mask.npy",
+    "internet_null_mask": "data/processed/internet_null_mask.npy"
+  },
+  "grid": {
+    "crs_name": "urn:ogc:def:crs:EPSG::4326",
+    "cell_id_property": "cellId",
+    "cell_id_min": 1,
+    "cell_id_max": 10000,
+    "expected_feature_count": 10000,
+    "expected_rows": 100,
+    "expected_columns": 100
+  },
+  "selection": {
+    "row_start": 35,
+    "row_end_exclusive": 65,
+    "column_start": 35,
+    "column_end_exclusive": 65,
+    "expected_cell_count": 900
+  },
+  "time": {
+    "expected_steps": 4320,
+    "interval_ms": 600000
+  },
+  "outputs": {
+    "central_cells_csv": "data/processed/central_900.csv",
+    "central_traffic": "data/processed/central_900_traffic.npy",
+    "central_missing_mask": "data/processed/central_900_missing_mask.npy",
+    "central_internet_null_mask": "data/processed/central_900_internet_null_mask.npy",
+    "manifest": "data/processed/central_900_manifest.json",
+    "map_png": "docs/assets/central-900-grid.png"
+  },
+  "visualization": {
+    "dpi": 160,
+    "figure_width_inches": 7.2,
+    "figure_height_inches": 7.2
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "source": {
+    "title": "Milano Grid",
+    "citation": "Telecom Italia, 2015, Milano Grid, Harvard Dataverse",
+    "persistent_id": "doi:10.7910/DVN/QJWLFU",
+    "doi_url": "https://doi.org/10.7910/DVN/QJWLFU",
+    "metadata_api_url": "https://dataverse.harvard.edu/api/datasets/:persistentId/?persistentId=doi%3A10.7910%2FDVN%2FQJWLFU",
+    "dataset_version": "1.3",
+    "released_at": "2020-02-09T11:04:35Z",
+    "license": "Open Database License (ODbL) 1.0",
+    "license_url": "https://opendatacommons.org/licenses/odbl/1-0/"
+  },
+  "file": {
+    "datafile_id": 2670806,
+    "name": "milano-grid.geojson",
+    "size_bytes": 3168596,
+    "checksum": {
+      "algorithm": "md5",
+      "value": "e64ed3858e97347c14cd049efde8c7d3"
+    },
+    "official_access_url": "https://dataverse.harvard.edu/api/access/datafile/2670806"
+  },
+  "acquisition": {
+    "method": "checksum-verified-public-mirror",
+    "verified_mirror_url": "https://raw.githubusercontent.com/pjsudharshan/Big_Data_Time_Series_Analysis/3ced74320eeea2e2de726446b1e3016c1ee824b4/milano-grid.geojson",
+    "mirror_repository_url": "https://github.com/pjsudharshan/Big_Data_Time_Series_Analysis",
+    "mirror_commit_sha": "3ced74320eeea2e2de726446b1e3016c1ee824b4",
+    "git_blob_sha1": "108ba0f7bbdc2ac4c28b331c971bcc5d9815585d",
+    "verified_at": "2026-09-03",
+    "note_ko": "공식 Dataverse 다운로드에는 guestbook 응답이 필요하다. 공개 미러의 파일 크기와 MD5가 공식 Dataverse 메타데이터와 일치하는지 확인한 뒤 로컬 입력으로 사용한다."
+  },
+  "integrity": {
+    "purpose": "공식 Dataverse 파일과 바이트 단위로 같은 공간 데이터인지 확인",
+    "security_note": "MD5는 보안 용도가 아니라 원출처가 공개한 무결성 값과 비교하는 용도로만 사용한다."
+  }
+}
