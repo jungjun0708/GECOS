@@ -1,0 +1,3 @@
+# Python 3.12 UPC 초기 그룹 생성 전용 환경
+numpy==2.5.2
+tzdata==2026.3

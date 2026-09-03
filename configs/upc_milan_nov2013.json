@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "name": "milan-internet-2013-11-upc-initial-groups",
+  "inputs": {
+    "processed_manifest": "data/processed/manifest.json",
+    "traffic": "data/processed/traffic.npy",
+    "cell_ids": "data/processed/cell_ids.npy",
+    "timestamps_ms": "data/processed/timestamps_ms.npy",
+    "missing_mask": "data/processed/missing_mask.npy",
+    "internet_null_mask": "data/processed/internet_null_mask.npy",
+    "central_manifest": "data/processed/central_900_manifest.json",
+    "central_cells_csv": "data/processed/central_900.csv"
+  },
+  "grid": {
+    "expected_cell_count": 10000,
+    "expected_central_cell_count": 900
+  },
+  "time": {
+    "timezone": "Europe/Rome",
+    "interval_ms": 600000,
+    "observations_per_hour": 6,
+    "expected_step_count": 4320
+  },
+  "protocols": {
+    "paper_faithful": {
+      "start_local": "2013-11-01T00:00:00",
+      "end_exclusive_local": "2013-12-01T00:00:00",
+      "weekdays_only": true
+    },
+    "train_only": {
+      "start_local": "2013-11-01T00:00:00",
+      "end_exclusive_local": "2013-11-21T00:00:00",
+      "weekdays_only": true
+    }
+  },
+  "diagnostics": {
+    "figure4_complete_weeks_mean_profile": {
+      "method": "mean_hourly_profile_then_argmax",
+      "start_local": "2013-11-04T00:00:00",
+      "end_exclusive_local": "2013-11-30T00:00:00",
+      "weekdays_only": true
+    }
+  },
+  "validation": {
+    "paper_group_counts": [
+      17,
+      4,
+      0,
+      0,
+      0,
+      0,
+      1,
+      3,
+      940,
+      207,
+      133,
+      208,
+      383,
+      1306,
+      283,
+      321,
+      644,
+      681,
+      2155,
+      603,
+      850,
+      1114,
+      129,
+      18
+    ],
+    "require_exact_paper_fingerprint": true
+  },
+  "execution": {
+    "cell_chunk_size": 256
+  },
+  "outputs": {
+    "paper_faithful_peak_hours": "data/processed/upc/paper_faithful_peak_hours.npy",
+    "train_only_peak_hours": "data/processed/upc/train_only_peak_hours.npy",
+    "figure4_diagnostic_peak_hours": "data/processed/upc/figure4_diagnostic_peak_hours.npy",
+    "all_cell_memberships_csv": "data/processed/upc/all_cell_memberships.csv",
+    "central_900_memberships_csv": "data/processed/upc/central_900_memberships.csv",
+    "group_counts_json": "data/processed/upc/group_counts.json",
+    "manifest": "data/processed/upc/manifest.json"
+  }
+}
