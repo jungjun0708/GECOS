@@ -205,7 +205,10 @@
   대체하지 않는다.
 - 구현 결과: cluster 1 모델에서 Train 1개와 Validation 4개의 작은 음수 예측이
   발생했고 Test에는 없었다. 지표 함수의 기준선 비음수 기본 계약은 유지하되 LSTM
-  호출만 명시적으로 음수 예측을 허용했다.
+  호출만 명시적으로 음수 예측을 허용했다. 후속 Train-only scaling pilot의
+  Validation에서는 역변환 후 UPC off 2개, UPC on 41개의 작은 음수 예측이 있었고
+  최솟값은 각각 약 `-0.00659`, `-0.03244`였다. clipping 없이 그대로 평가했으며
+  저자의 출력 계약이 확인되지 않았으므로 gap은 유지한다.
 
 ## 5. 데이터와 표본 생성
 
@@ -223,13 +226,20 @@
 
 ### GAP-DATA-02: scaling 대상과 적합 기간이 불명확함
 
-- 상태: `결정 완료`
+- 상태: `본 학습 후보 결정 완료·저자 설정은 외부 정보 필요`
 - 논문: UPC 입력이 min-max scaled라고 설명하지만 셀별/전체 기준과 모델 입력
   scaling 여부를 공개하지 않는다.
 - 영향: 그룹 평균 profile과 모델 최적화가 달라질 수 있다.
 - 방침: UPC에는 셀별 min-max scaling을 적용한다. 주 결과는 Train 기간에만
   scaler를 적합한다. RCTL의 최초 paper-oriented 실행은 raw traffic을 사용하고,
-  추가 scaling은 별도 실험으로 취급한다.
+  모델 scaling은 별도 실험으로 취급한다.
+- 구현 결과: 동일한 중앙 900셀·선택 target·LSTM·seed·5 epoch에서 입력과 target만
+  Train 전체 2,880시점으로 적합한 셀별 Min-Max로 변환했다. Test를 bundle에서
+  제외한 Validation UPC off MAE가 raw `236.2853`에서 `30.4308`로 `87.12%`
+  감소해 사전 등록한 20% 개선 기준을 통과했다. 본 학습 후보로 채택하되 논문의
+  미공개 저자 설정으로 확정하지 않는다. 상세 근거는
+  [LSTM Train-only 셀별 Min-Max scaling pilot](12-lstm-train-only-scaling-pilot.md)에
+  기록한다.
 
 ### GAP-DATA-03: 길이 `q`와 예측 target 정렬이 불명확함
 
@@ -339,7 +349,7 @@
 
 ### GAP-REPO-02: 실행 환경이 고정되지 않음
 
-- 상태: `RCTL 및 LSTM smoke 환경 결정 완료`
+- 상태: `RCTL·LSTM smoke 및 scaling pilot 환경 결정 완료`
 - 근거: requirements, Python/TensorFlow/Keras/CUDA 버전이 공개되지 않았다.
 - 영향: 최신 Keras에서 저장 형식과 일부 API 동작이 달라질 수 있다.
 - 방침: 첫 동작 구현에서 실제 Colab runtime을 기록하고 호환되는 버전을 lock한다.
@@ -347,6 +357,8 @@
 - 구현 결과: Tesla T4 15,360MiB, Python 3.13.15, NumPy 2.1.3, TensorFlow 2.20.0,
   tf.keras 3.13.2 조합에서 RCTL과 LSTM smoke를 실행했다. 최종 LSTM smoke는 같은
   코드로 두 번 실행해 구조·평가·예측·셀별 지표 파일의 SHA-256이 모두 같았다.
+  Train-only scaling pilot도 같은 환경에서 두 번 실행해 네 핵심 산출물의 SHA-256이
+  모두 같았다.
   `requirements/model.txt`와 실행 manifest에 이 환경을 기록했다. Colab 이미지가
   바뀌면 기존 lock을 조용히 갱신하지 않고 새 환경에서 smoke를 다시 수행한다.
 
