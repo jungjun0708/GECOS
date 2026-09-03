@@ -75,7 +75,11 @@ def audit_lstm_model(
 
     with tf.GradientTape() as tape:
         training_predictions = model(sample, training=True)
-        loss = tf.reduce_mean(tf.abs(target - training_predictions))
+        # 이 검사는 학습 목표를 재현하는 평가가 아니라 모든 trainable variable까지
+        # 계산 그래프가 이어지는지 확인하는 probe다. 작은 짝수 표본에서 MAE를 쓰면
+        # 양·음 부호가 정확히 상쇄되어 Dense bias가 0 gradient가 되는 거짓 실패가
+        # 생길 수 있으므로, 연결성 검사에는 매끄러운 제곱오차를 사용한다.
+        loss = tf.reduce_mean(tf.square(target - training_predictions))
     gradients = tape.gradient(loss, model.trainable_variables)
     gradient_rows: list[dict[str, Any]] = []
     missing_gradient_count = 0
@@ -152,6 +156,8 @@ def audit_lstm_model(
         "actual_parameter_count": parameter_count,
         "parameter_count_difference": parameter_count - spec.expected_parameter_count,
         "gradient_audit": {
+            "objective": "mean_squared_error_graph_connectivity_probe",
+            "training_loss_remains": "mae",
             "loss": float(loss.numpy()),
             "trainable_variable_count": len(model.trainable_variables),
             "missing_gradient_count": missing_gradient_count,

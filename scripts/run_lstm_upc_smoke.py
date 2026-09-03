@@ -599,8 +599,33 @@ def run_lstm_upc_smoke(config: LstmUpcSmokeConfig) -> dict[str, Any]:
         audit_model, spec=config.architecture, seed=config.seed
     )
     if not architecture_report["required_gates_passed"]:
+        architecture_failure = {
+            "required_gates": architecture_report["required_gates"],
+            "actual_parameter_count": architecture_report["actual_parameter_count"],
+            "actual_output_shape": architecture_report["actual_output_shape"],
+            "gradient_counts": {
+                key: architecture_report["gradient_audit"][key]
+                for key in (
+                    "trainable_variable_count",
+                    "missing_gradient_count",
+                    "nonfinite_gradient_count",
+                    "nonzero_gradient_count",
+                )
+            },
+            "zero_gradient_variables": [
+                row["variable"]
+                for row in architecture_report["gradient_audit"]["variables"]
+                if row["gradient_present"]
+                and row["finite"]
+                and row["maximum_absolute_gradient"] == 0
+            ],
+        }
+        failure_json = json.dumps(
+            architecture_failure, ensure_ascii=False, allow_nan=False
+        )
+        print(f"LSTM_ARCHITECTURE_AUDIT_FAILURE={failure_json}", flush=True)
         raise LstmSmokeContractError(
-            "LSTM architecture 필수 gate를 통과하지 못했습니다."
+            "LSTM architecture 필수 gate를 통과하지 못했습니다: " + failure_json
         )
     del audit_model
     tf.keras.backend.clear_session()

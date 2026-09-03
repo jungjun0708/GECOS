@@ -81,6 +81,11 @@ class LstmSmokeConfigTests(unittest.TestCase):
 
         self.assertEqual(model.output_shape, (None, 1))
         self.assertEqual(model.count_params(), 165185)
+        self.assertEqual(
+            report["gradient_audit"]["objective"],
+            "mean_squared_error_graph_connectivity_probe",
+        )
+        self.assertEqual(report["gradient_audit"]["training_loss_remains"], "mae")
         self.assertTrue(report["required_gates_passed"])
 
 
