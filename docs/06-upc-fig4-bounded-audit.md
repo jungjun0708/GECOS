@@ -167,6 +167,7 @@ hash와 그룹 수만 남겨 후속 모델이 probe membership을 실수로 읽�
 4. 결측과 국가코드별 Internet 공란을 어떻게 처리했는가?
 5. Fig. 4 생성 코드나 10,000셀 UPC membership을 공유할 수 있는가?
 
-외부 답변을 기다리는 동안에는 `train_only`로 독립 기준선을 먼저 구현한다. 이후
-PCC와 `N=2` 군집화를 구현할 때 `algorithm1_full_month`는 민감도 비교에만 사용하고,
-Fig. 4 probe는 성능표에 포함하지 않는다.
+외부 답변을 기다리는 동안 `train_only` 독립 기준선을 구현했고, 이어서 PCC와
+`N=2` 군집화를 수행했다. `algorithm1_full_month`는 민감도 비교에만 사용했으며
+Fig. 4 probe는 입력과 성능표에서 제외했다. 구현 결과와 새로 드러난 순서 민감도는
+[UPC PCC 기반 최종 2개 클러스터](09-upc-pcc-final-clusters.md)에 기록했다.

@@ -68,6 +68,16 @@ Fig. 4 불일치에 대한 사전 등록 감사는
 실행한다. 결과 JSON·CSV와 manifest는 `processed/upc/audits/`에 저장되며 역시
 Git에서 제외된다. 이 감사는 진단 membership 파일을 만들지 않는다.
 
+## UPC PCC 최종 클러스터
+
+초기 그룹과 제한 감사가 끝나면
+[UPC PCC 기반 최종 2개 클러스터](../docs/09-upc-pcc-final-clusters.md)를 실행한다.
+두 프로토콜의 길이 24 group profile, PCC, 초기 group→최종 cluster 대응과 전체
+10,000셀·중앙 900셀 membership은 `processed/upc/final_clusters/`에 저장한다.
+모두 파생 데이터라 Git에서 제외하며 `summary.json`과 `manifest.json`에 배정 순서
+민감도, 논문 Fig. 5 진단, 입력·출력 checksum을 보존한다. Fig. 4 probe는 이 단계의
+입력으로 사용하지 않는다.
+
 ## 학습 없는 기준선
 
 공통 예측 표본과 시간 분할을 검증한 뒤
