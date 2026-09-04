@@ -492,11 +492,27 @@ seed별 Validation 결과와 provenance 보존은 완료했다. 그러나 중앙
 대신 다음 조건을 만족해 **학습용 부분 재현 완료**로 종료한다.
 
 - 원본부터 모델 입력까지의 데이터 흐름과 누수 방지 계약을 설명하고 검증할 수 있음
-- UPC 구현 결과와 Fig. 4가 일치하지 않는 이유와 조사 한계를 설명할 수 있음
+- UPC 구현 결과가 Fig. 4와 일치하지 않으며, 검증한 가설과 공개 정보만으로 확정할
+  수 없는 한계를 설명할 수 있음
 - RCTL의 논문형·공개 코드형 차이와 parameter 불일치를 설명할 수 있음
 - LSTM UPC off/on을 동일 split·scaling·seed로 학습하고 지표를 해석할 수 있음
 - 재현된 것, 근사한 것, 진단만 한 것과 미실행 항목이 문서에서 구분됨
 - 원시 데이터·논문 PDF·checkpoint 없이도 코드와 metadata를 안전하게 공유할 수 있음
+
+### 13.1 완료 조건별 핵심 근거
+
+아래 표는 각 완료 조건에서 실제로 확인한 내용의 요약이다. 여기서는 학습에 필요한
+핵심 답만 제시하고, 계산 과정·config·checksum과 세부 해석은 연결한 단계 문서를
+단일 근거로 사용한다.
+
+| 학습 목표 | 이 프로젝트에서 확인한 핵심 답 | 상세 근거 |
+|---|---|---|
+| 데이터 흐름과 누수 방지 | 공식 원본 30개 파일을 검증해 `10,000 × 4,320` 행렬을 만들고 중앙 900셀을 선택했다. 과거 8개 시점으로 다음 시점을 예측하며 target 시각을 기준으로 20일/5일/5일을 분할했다. Min-Max scaler는 Train에만 적합했고 전체 LSTM bundle은 Test 시작 index 3,600 전에 끝난다. | [원본 검증](02-raw-data-integrity.md), [전처리](03-internet-preprocessing.md), [중앙 900셀](04-central-900-selection.md), [예측 계약](07-naive-baselines.md), [LSTM 전체 학습](13-lstm-full-training.md) |
+| UPC와 Fig. 4 | 평일 peak hour로 초기 그룹을 만들고 PCC로 611셀·289셀의 두 cluster를 구성했다. 시간 범위, 집계, 결측 제외 등 사전 등록한 후보를 제한 감사했지만 Fig. 4의 그룹 수와 일치하지 않았다. 어떤 미공개 규칙이 차이를 만들었는지는 확정하지 못했다. | [UPC 초기 그룹](05-upc-initial-groups.md), [Fig. 4 제한 감사](06-upc-fig4-bounded-audit.md), [최종 cluster](09-upc-pcc-final-clusters.md), [학습 정책](10-upc-order-training-policy.md) |
+| RCTL 구조 차이 | 논문 해석형은 `Concatenate`, kernel 4, `2^i` dilation으로 `236,657`개 parameter였고, 공개 코드형은 `Add`, kernel 3, `2*i` dilation으로 `173,665`개였다. 둘 다 Table III의 `173,633`과 다르지만 shape·causality·gradient와 작은 표본 overfit은 통과했다. | [RCTL 구조 감사](08-rctl-architecture-smoke.md), [RCTL gap](01-reproducibility-gaps.md#3-공개-코드와-rctl) |
+| LSTM UPC 비교 | `165,185`개 parameter 후보를 seed `42/43/44`에서 같은 split·scaling으로 비교했다. UPC on은 off보다 MAE·WAPE가 약 `0.38%`, MAPE가 약 `6.26%` 낮았다. 방향은 세 seed에서 같았지만 Test 일반화나 논문 성능 재현으로 해석하지 않았다. | [scaling pilot](12-lstm-train-only-scaling-pilot.md), [LSTM 전체 학습](13-lstm-full-training.md) |
+| 범위 구분 | 데이터·UPC·기준선·LSTM Validation은 완료했고 중앙 900셀은 근사했으며 RCTL은 구조 감사까지만 수행했다. RCTL 전체 학습, RCC, 10,000셀 확장과 최종 Test는 의도적으로 실행하지 않았다. | [학습용 논문 재현 최종 정리](14-study-reproduction-conclusion.md) |
+| 안전한 공유 | Git에는 config, metadata, code, tests와 문서만 남겼다. 원시 데이터, 논문 PDF, ZIP, 전처리 결과와 checkpoint는 제외하고 checksum으로 provenance를 보존했다. | [제외 규칙](../.gitignore), [데이터와 산출물 안내](../data/README.md) |
 
 이 종료 판정은 미완료 항목을 완료로 바꾸지 않는다. 향후 외부 정보나 새로운 학습
 목표가 생기면 별도 config와 결과 경로에서 재개한다.
