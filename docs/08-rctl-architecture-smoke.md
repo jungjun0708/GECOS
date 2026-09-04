@@ -247,13 +247,25 @@ unzip -o data/interim/rctl_smoke/colab_outputs.zip -d .
 smoke 모델은 일회성 진단 도구이므로 checkpoint를 보존하지 않는다. 본 학습에서는
 Validation MAE 기준 최적 checkpoint와 early stopping 상태를 별도 manifest에 남긴다.
 
-## 9. 여기서 얻은 학습과 다음 단계
+## 9. 여기서 얻은 학습과 당시 다음 단계
 
 이번 단계의 핵심 학습은 논문 그림, 하이퍼파라미터 표, parameter 표와 공개 코드가
 동시에 하나의 구조를 가리키지 않는다는 점이다. `Concatenate`와 `Add` 하나의 차이가
 LSTM parameter 수를 크게 바꾸며, parameter 표만 보면 오히려 공개 코드형이 훨씬
 가깝다. 따라서 이후 성능표에서도 변형 이름을 생략하면 안 된다.
 
-다음 단계는 모델을 바로 900셀에 확대하는 것이 아니라 UPC의 24개 초기 그룹을
+당시 다음 단계는 모델을 바로 900셀에 확대하는 것이 아니라 UPC의 24개 초기 그룹을
 PCC로 최종 `N=2` cluster에 결정론적으로 병합하는 것이다. 그 membership을 고정한
 뒤 같은 Train/Validation/Test 계약에서 LSTM과 RCTL의 UPC on/off 비교를 수행한다.
+
+### 9.1 학습용 프로젝트의 최종 판정
+
+이후 UPC membership과 학습 정책, LSTM UPC off/on 전체 Train·Validation 비교까지는
+완료했다. 그러나 RCTL은 논문형 `236,657`, 공개 코드형 `173,665` parameter로 모두
+논문 Table III의 `173,633`과 일치하지 않았다. 어느 하나를 저자 모델로 간주해
+900셀 전체 학습을 실행하면 구조 선택의 임의성이 성능 해석보다 커진다.
+
+따라서 이 프로젝트는 RCTL에서 shape, causality, gradient와 작은 실제 표본 overfit을
+확인한 구조 감사까지를 최종 범위로 삼는다. 전체 학습과 RCC ablation은 실패로
+숨기지 않고 **의도적으로 미실행**한 항목으로 남긴다. 전체 종료 근거는
+[학습용 논문 재현 최종 정리](14-study-reproduction-conclusion.md)에 기록한다.
