@@ -43,18 +43,61 @@
 > 위 내용은 **논문 원문이 보고한 결과**다. 아래부터는 이 저장소에서 직접 구현하고
 > 확인한 범위이며, 논문의 Table II·IV를 재현했다고 해석하지 않는다.
 
-## 재현을 통해 답한 핵심 질문
+## 논문 재현으로 이해한 핵심
 
-이 프로젝트는 공개 코드를 단순 실행하는 대신 다음 질문에 답할 수 있도록 진행했다.
+### 1. 왜 예측 전에 지역을 clustering하는가?
 
-| 핵심 질문 | 이 프로젝트에서 확인한 답 |
-|---|---|
-| 논문, 공개 코드와 실제 데이터가 다르면 무엇을 근거로 구현하는가? | 출판된 논문 → 공식 데이터 설명과 실제 구조 → 원저자 공개 코드 → 명시적으로 검증한 구현 가정 순으로 판단했다. 하위 근거로 차이를 덮지 않고 서로 다른 변형이나 gap으로 남겼다. 자세한 원칙은 [핵심 재현 범위와 실험 계약](docs/00-reproduction-scope.md#2-판단-근거의-우선순위)과 [재현 가능성 차이 및 처리 방침](docs/01-reproducibility-gaps.md)에 기록했다. |
-| 원본 데이터의 checksum, 시간축과 결측은 어떻게 검증하는가? | 공식 manifest로 2013년 11월 30개 파일의 목록·크기·MD5를 확인하고 **10,000 × 4,320** traffic 행렬을 생성했다. 행 자체의 누락과 Internet 값의 공란은 0으로 처리하되 서로 다른 mask로 보존했다. 근거는 [원본 데이터 무결성](docs/02-raw-data-integrity.md)과 [Internet traffic 전처리](docs/03-internet-preprocessing.md)에 있다. |
-| UPC를 미래 정보 없이 구성할 수 있는가? | Train 20일의 평일만 사용해 cell별 peak hour와 PCC를 계산하고 중앙 900 cell을 611/289 cell의 두 cluster로 나눴다. Validation·Test에는 고정된 membership만 적용했다. 전체 기간 해석과 Fig. 4 근접 가설은 진단용으로 격리했다. [UPC 초기 그룹](docs/05-upc-initial-groups.md), [최종 cluster](docs/09-upc-pcc-final-clusters.md), [학습 정책](docs/10-upc-order-training-policy.md)에서 확인할 수 있다. |
-| MAE, MAPE와 WAPE는 어떻게 비교하는가? | MAE는 원래 traffic 단위, MAPE는 y=0을 제외한 percent, WAPE는 전체 실제값 대비 절대오차 비율로 해석했다. micro와 cell-macro 집계를 구분하고 분모와 제외 표본 수를 함께 기록했다. 논문은 MAE·MAPE만 사용하며 WAPE는 이 저장소가 보조 지표로 추가했다. [예측·평가 계약](docs/07-naive-baselines.md)을 따른다. |
-| 모델 구조가 완전히 공개되지 않았을 때 사실과 가정을 어떻게 나누는가? | 논문형 **paper_interpretation**과 공개 코드형 **public_reference**를 별도 config로 구현했다. 두 구조의 shape·causality·gradient·parameter를 검사했지만 어느 쪽도 저자의 최종 모델로 단정하지 않았다. 차이는 [RCTL 구조 감사](docs/08-rctl-architecture-smoke.md)에 정리했다. |
-| Validation으로 선택한 모델과 Test를 어떻게 분리하는가? | target 시각 기준 20일/5일/5일로 분할하고 scaler는 Train에만 적합했으며 early stopping과 모델 선택에는 Validation만 사용했다. 초기 raw smoke에서 Test를 진단용으로 본 이력이 있어 최종 일반화 성능은 보고하지 않았다. [LSTM 전체 학습](docs/13-lstm-full-training.md)과 [최종 정리](docs/14-study-reproduction-conclusion.md)에 경계를 명시했다. |
+상업·주거처럼 기능이 비슷한 지역은 서로 멀리 떨어져 있어도 유사한 시간대에 traffic이
+증가한다. GECOS는 서로 다른 분포를 하나의 model에 섞는 대신 유사한 cell끼리 묶고,
+각 cluster가 더 균질한 pattern을 학습하게 한다.
+
+### 2. UPC는 왜 peak hour와 PCC를 사용하는가?
+
+UPC는 cell마다 평일에 가장 반복적으로 나타난 peak hour를 찾아 24개 초기 group을
+만든다. 이후 각 group의 24시간 traffic profile 사이 PCC를 계산해 유사한 group을
+병합하므로 지리적 거리 없이 활동 시간대가 비슷한 지역을 찾을 수 있다.
+
+재현 과정에서는 기간과 peak 집계 방식이 조금만 달라도 초기 group이 크게 바뀌며,
+논문의 Algorithm 1을 그대로 해석한 결과가 Fig. 4와 일치하지 않는다는 한계도
+확인했다. 자세한 과정은 [UPC 초기 그룹](docs/05-upc-initial-groups.md)과
+[Fig. 4 제한 감사](docs/06-upc-fig4-bounded-audit.md)에 기록했다.
+
+### 3. UPC와 RCTL은 어떻게 하나의 GECOS를 구성하는가?
+
+UPC는 학습 대상을 유사한 cell 집합으로 나누고, 각 cluster에는 별도의 RCTL을
+할당한다. 즉 GECOS는 clustering만을 뜻하지 않으며, **UPC와 cluster별 RCTL을
+결합한 전체 framework**다. cluster 수가 늘면 더 세밀하게 학습할 수 있지만 model
+수와 계산 비용도 함께 증가하며, 논문 실험에서는 2개 cluster가 가장 효과적이었다.
+
+### 4. RCTL은 기존 TCN-LSTM을 무엇 때문에 확장했는가?
+
+논문은 깊은 TCN-LSTM에서 feature와 gradient가 약해지는 문제를 두 residual
+connection으로 보완한다. RCC-1은 block 사이의 temporal feature 전달을, RCC-2는
+같은 channel 사이의 spatial·channel feature 보존을 담당하며 논문 Fig. 11은 둘을
+함께 사용한 RCTL의 가장 낮은 MAPE를 보고한다.
+
+다만 논문 그림의 Concatenate, 공개 코드의 Add, kernel과 dilation 규칙이 서로
+달랐다. 이 저장소는 두 해석의 계산 건전성만 [RCTL 구조 감사](docs/08-rctl-architecture-smoke.md)로
+확인했으며, 어느 구조가 저자의 최종 실험 model인지는 확정하지 않았다.
+
+### 5. 실험 결과는 clustering 효과를 어떻게 보여주는가?
+
+논문에서는 UPC가 LSTM·MLP·Transformer·MAMBA의 MAPE를 모두 낮췄다. 이 저장소의
+통제된 LSTM Validation 비교에서도 UPC on이 세 seed 모두 off보다 낮았지만, 상대
+개선은 MAPE 약 6.26%에 비해 MAE·WAPE가 약 0.38%로 작았다.
+
+따라서 clustering 효과는 하나의 metric만으로 판단할 수 없다. 작은 양수 target에
+민감한 MAPE와 원래 traffic 단위의 MAE, 전체 오차 비율인 WAPE를 함께 봐야 한다.
+직접 확인한 수치와 조건은 [LSTM 전체 학습](docs/13-lstm-full-training.md)에 있다.
+
+### 6. 재현 후에도 확정할 수 없는 것은 무엇인가?
+
+저자의 정확한 중앙 900 cell, Fig. 4 생성 규칙과 RCTL 내부 연결은 공개 정보만으로
+확정할 수 없었다. Table IV의 수치와 본문 개선율도 일치하지 않으므로, 이 저장소는
+논문 수치를 맞추기보다 **어떤 주장을 근거 있게 할 수 있는지 구분하는 것**을
+학습 결과로 삼았다. 전체 gap과 종료 판단은
+[재현 가능성 차이 및 처리 방침](docs/01-reproducibility-gaps.md)과
+[학습용 논문 재현 최종 정리](docs/14-study-reproduction-conclusion.md)에 남겼다.
 
 ## 실험을 따라간 흐름
 
@@ -117,21 +160,17 @@ cluster별 UPC on 모델 6개, 총 9개 job을 Colab T4에서 학습했다. 다�
 재현**이다. 논문의 전체 GECOS 성능, 99% confidence interval 또는 Table II·IV의
 수치를 재현했다고 주장하지 않는다.
 
-## 재현 과정에서 얻은 핵심 학습
+## 재현 과정에서 지킨 원칙
 
-1. **재현은 수치보다 가정을 추적하는 작업에 가깝다.** 논문, 그림, 표와 공개 코드가
-   하나의 구현을 가리키지 않으면 출처와 변형 이름을 생략하지 않아야 한다.
-2. **전처리와 평가 계약이 모델보다 먼저다.** target 시각 기준 split, Train-only
-   scaling, 결측 target 정책과 metric 집계를 먼저 고정해야 누수와 사후 선택을 막을
-   수 있다.
-3. **재현되지 않은 결과도 결과다.** Fig. 4에 맞는 조합을 계속 찾는 대신 제한된
-   가설만 검사하고 남은 차이를 gap으로 보존했다.
-4. **smoke와 성능 실험은 목적이 다르다.** shape, gradient와 작은 표본 overfit
-   통과만으로 Validation·Test 성능을 주장하지 않았다.
-5. **지표 이름보다 단위와 집계 방식이 중요하다.** 같은 예측도 y=0 처리, ratio와
-   percent, micro와 cell-macro에 따라 다르게 해석된다.
-6. **재현성은 seed 고정보다 넓다.** source commit, config, 입력, cluster membership,
-   job descriptor와 산출물 checksum까지 연결해야 결과를 추적할 수 있다.
+- 구현 근거는 출판된 논문 → 공식 데이터 설명과 실제 구조 → 원저자 공개 코드 →
+  명시적으로 검증한 구현 가정 순으로 판단했다. 충돌을 조용히 섞지 않고 서로 다른
+  변형과 gap으로 기록했다.
+- clustering, scaling과 model 선택은 각각 허용된 Train·Validation 범위에서만
+  수행했다. target 시각 기준 split과 고정 membership으로 미래 정보 누수를 막았다.
+- smoke는 shape·gradient·pipeline을 검사하는 진단으로만 사용하고, 성능 주장은
+  전체 Validation 학습 결과로 제한했다.
+- 원시 데이터와 checkpoint를 Git에 넣지 않는 대신 source commit, config, 입력,
+  cluster membership, job descriptor와 산출물 checksum을 연결했다.
 
 ## 자원 사용과 안전한 공유
 
