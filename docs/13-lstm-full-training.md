@@ -4,13 +4,15 @@
 
 Train-only 셀별 Min-Max scaling pilot은 같은 900셀·선택 target·LSTM·seed·5
 epoch에서 UPC off Validation MAE를 raw `236.2853`에서 `30.4308`로 낮춰 결과 전에
-고정한 20% 개선 문턱을 통과했다. 다음 단계는 이 scaling을 고정하고 중앙 900셀의
-모든 Train·Validation target으로 LSTM UPC off/on을 seed 3개에서 학습하는 것이다.
+고정한 20% 개선 문턱을 통과했다. 사전 등록 당시 다음 단계는 이 scaling을 고정하고
+중앙 900셀의 모든 Train·Validation target으로 LSTM UPC off/on을 seed 3개에서
+학습하는 것이었다.
 
-이 문서의 계약은 전체 학습 결과를 보기 전에 작성한다. 현재 단계는 **Train과
-Validation을 이용한 학습·모델 선택**이며 Test 데이터, Test prediction과 Test
-지표를 포함하지 않는다. 9개 학습 job과 Validation 집계가 통과한 뒤 별도 변경에서
-Test 평가 코드를 추가한다.
+이 문서의 1~9절 계약은 전체 학습 결과를 보기 전에 작성했고 12절에 실제 실행
+결과를 추가했다. 범위는 **Train과 Validation을 이용한 학습·모델 선택**이며 Test
+데이터, Test prediction과 Test 지표를 포함하지 않는다. 9개 학습 job과 Validation
+집계는 완료했으며, 학습용 프로젝트의 최종 결정에 따라 Test 평가 코드는 추가하지
+않았다.
 
 ## 2. LSTM을 RCTL보다 먼저 실행하는 이유
 
@@ -405,7 +407,7 @@ off가 각각 `2/1/1`개, 재결합한 UPC on이 `26/22/21`개였다. 최솟값�
 Validation prediction, best checkpoint와 run manifest hash를 모두 고정하며 상태는
 `ready_for_locked_test_evaluation`이다.
 
-### 12.6 결론과 다음 경계
+### 12.6 결론과 최종 경계
 
 이번 단계의 결론은 **전체 Train·Validation LSTM 학습 경로가 재현 가능하게
 완료됐고, UPC off/on 두 후보가 잠겼다**는 것이다. 아직 Test를 실행하지 않았으므로
@@ -413,6 +415,13 @@ Validation prediction, best checkpoint와 run manifest hash를 모두 고정하�
 평가도 pristine holdout이 아니라
 `locked final evaluation with prior raw-smoke exposure`로 표시해야 한다.
 
-다음 변경에서는 위 release SHA를 입력으로 고정한 Test 전용 bundle과 일회성
-평가기만 추가한다. Test를 본 뒤 scaler, epoch, seed, clipping, UPC membership 또는
-모델 구조를 바꾸지 않는다.
+사전 등록 시에는 다음 변경에서 위 release SHA를 고정한 Test 전용 bundle과 일회성
+평가기를 추가할 계획이었다. 최종적으로는 과거 raw smoke의 Test 노출과 추가 학습
+가치를 함께 고려해 **release를 평가 준비 상태로 보존하고 Test를 실행하지 않는 것**을
+선택했다. 이 결정은 Validation 결과를 Test 결과로 바꾸지 않으며, 문서의 지표도
+계속 Validation으로만 표시한다.
+
+향후 새로운 학습 목표로 재개한다면 이 release SHA를 변경하지 않은 별도 Test 전용
+변경에서만 평가한다. Test를 본 뒤 scaler, epoch, seed, clipping, UPC membership
+또는 모델 구조를 바꾸지 않는다. 프로젝트 전체의 종료 판단은
+[학습용 논문 재현 최종 정리](14-study-reproduction-conclusion.md)를 따른다.

@@ -175,5 +175,8 @@ index `[0, 3600)`까지만 포함하므로 Test 시작 index 3,600 이후 값은
   사용할 9개 checkpoint와 결과 checksum
 
 전체 학습 결과도 파생 산출물이므로 Git에서 제외한다. release manifest의 상태가
-`ready_for_locked_test_evaluation`이어야만 별도 Test 평가 단계로 넘어가며, 본 단계는
-Test 배열을 읽거나 평가하지 않는다.
+`ready_for_locked_test_evaluation`인 것은 같은 checkpoint로 별도 Test 평가를 수행할
+수 있다는 기술적 조건이다. 학습용 프로젝트는 이 상태에서 종료하며 Test 배열을
+읽거나 평가하지 않는다. 상태 이름을 `evaluated`로 해석해서는 안 된다. 종료 범위와
+재개 조건은 [학습용 논문 재현 최종 정리](../docs/14-study-reproduction-conclusion.md)를
+따른다.
