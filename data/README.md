@@ -149,3 +149,31 @@ pipeline의 구조·학습·재결합 검증으로만 사용한다.
 모든 파일은 재생성 가능한 파생 산출물이므로 Git에서 제외한다. pilot은 고정 5
 epoch이고 checkpoint를 남기지 않는다. Test는 본 학습의 모든 선택이 끝날 때까지
 봉인한다.
+
+## LSTM 전체 Train·Validation 학습 입력과 결과
+
+[중앙 900셀 LSTM 전체 Train·Validation 학습](../docs/13-lstm-full-training.md)은
+Train-only 셀별 Min-Max scaling을 고정하고 모든 Train target으로 seed 3개 × UPC
+off/on cluster 조건의 독립 job 9개를 Colab T4에서 실행한다. 입력 bundle은 전역
+index `[0, 3600)`까지만 포함하므로 Test 시작 index 3,600 이후 값은 들어가지 않는다.
+
+- `interim/lstm_full_training/train_validation_input.npz`: 900셀의 Train·Validation
+  원시 시계열·mask, Train-only scaler와 target index
+- `interim/lstm_full_training/train_validation_input_manifest.json`: clean commit,
+  source·배열 checksum과 Test seal
+- `interim/lstm_full_training/job_descriptors/`: seed·조건별 immutable descriptor 9개
+- `interim/lstm_full_training/colab_bundle.zip`: Test가 없는 최소 Colab bundle
+- `processed/lstm_full_training/jobs/`: job별 best weights, Validation 예측, history와
+  runtime manifest
+- `processed/lstm_full_training/training_jobs.csv`: 9개 job의 epoch·checkpoint 목록
+- `processed/lstm_full_training/validation_report.json`: seed별 Validation
+  MAE·MAPE·WAPE와 평균·표본표준편차
+- `processed/lstm_full_training/validation_predictions.npz`: 원래 900셀 순서로
+  재결합한 UPC off/on Validation 예측
+- `processed/lstm_full_training/validation_per_cell_metrics.csv`: seed·정책별 셀 지표
+- `processed/lstm_full_training/validation_release_manifest.json`: 향후 잠긴 Test 평가에
+  사용할 9개 checkpoint와 결과 checksum
+
+전체 학습 결과도 파생 산출물이므로 Git에서 제외한다. release manifest의 상태가
+`ready_for_locked_test_evaluation`이어야만 별도 Test 평가 단계로 넘어가며, 본 단계는
+Test 배열을 읽거나 평가하지 않는다.

@@ -226,14 +226,16 @@ target, early stopping과 여러 seed를 사용하는 본 실험에서 수행한
 | `predictions.npz` | `2c9e46fe2afd1eb161d919cc197848432be98a62856bbb9bed25bcae9daab579` |
 | `per_cell_metrics.csv` | `6f36f8cd17cf92f9e2f0a32d0aa4e8332a82de2dc38c1b58c33d9d1c32c6a015` |
 
-## 10. 결론과 다음 단계
+## 10. 결론과 후속 실행
 
 scaling 후보 판정이 명확히 통과했으므로 epoch 수만 바꾸는 추가 pilot은 필요하지
-않다. 다음 작업은 이 셀별 Train-only scaler를 고정하고 중앙 900셀의 전체 target을
-사용하는 본 학습 계약을 구현하는 것이다.
+않았다. 후속 단계에서 이 셀별 Train-only scaler를 고정하고 중앙 900셀의 전체
+target을 사용하는 본 학습 계약을 구현·실행했다.
 
-본 학습에서는 Validation MAE early stopping, 최적 가중치 복원, seed `42, 43, 44`를
-사용한다. Test는 모델·epoch·scaling 선택이 모두 끝난 뒤 seed별로 한 번만 평가한다.
-먼저 LSTM UPC off/on 전체 비교를 완성해 데이터와 cluster별 학습 경로를 검증한 뒤,
-같은 split·scaler·seed 계약으로 RCTL 비교를 확장한다. 이 pilot의 raw 결과와 scaled
-결과는 모두 진단 기록으로 보존하며 서로 덮어쓰지 않는다.
+Validation scaled MAE early stopping, 최적 가중치 복원과 seed `42, 43, 44`로 9개
+job을 완료했다. 전체 Validation `all_targets` micro 평균 MAE는 UPC off `28.3164`,
+UPC on `28.2098`이었고 checkpoint와 결과는 release manifest로 고정했다. Test는
+여전히 실행하지 않았다. 전체 결과와 다음 평가 경계는
+[중앙 900셀 LSTM 전체 Train·Validation 학습](13-lstm-full-training.md)에 기록한다.
+이 pilot의 raw 결과와 scaled 결과는 모두 진단 기록으로 보존하며 서로 덮어쓰지
+않는다.
