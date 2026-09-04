@@ -19,7 +19,7 @@
 
 K-means는 주로 물리적 거리에 의존하고, DTW는 시계열 유사도를 비교할 수 있지만
 cell 쌍이 많아질수록 계산량이 빠르게 증가한다. 논문은 **예측 전에 traffic pattern이
-비슷한 cell을 효율적으로 묶고, 각 집합에 특화된 model을 학습하는 문제**로 접근한다.
+비슷한 cell을 효율적으로 묶고, 각 집합에 특화된 model을 학습하는 문제로** 접근한다.
 
 ### GECOS의 핵심 구조
 
@@ -31,18 +31,18 @@ cell별 mobile traffic
 → cell별 예측을 원래 공간 순서로 결합
 ~~~
 
-**Urbanflow Peak Clustering(UPC)**은 각 cell에서 반복적으로 traffic이 가장 높은
+**Urbanflow Peak Clustering(UPC)은** 각 cell에서 반복적으로 traffic이 가장 높은
 시간을 활동 pattern의 요약값으로 사용한다. 먼저 peak hour가 같은 cell을 묶고,
 24시간 profile 사이의 Pearson Correlation Coefficient(PCC)가 높은 group을
 합친다. 지리적으로 떨어진 지역도 사용 시간대가 비슷하면 같은 cluster에 들어갈 수
 있다.
 
-**Residual Convolutional TCN-LSTM(RCTL)**은 cluster 내부의 시공간 pattern을
+**Residual Convolutional TCN-LSTM(RCTL)은** cluster 내부의 시공간 pattern을
 예측한다. 논문은 TCN-LSTM에 RCC-1과 RCC-2를 추가해 깊은 network에서 temporal
 feature와 spatial·channel feature가 약해지는 문제를 보완하려 한다.
 
 따라서 GECOS는 UPC만을 뜻하지 않는다. **UPC가 서로 다른 분포를 분리하고, 각
-cluster의 RCTL이 해당 분포를 학습하는 전체 framework**다. 이 저장소의 LSTM
+cluster의 RCTL이 해당 분포를 학습하는 전체 framework다.** 이 저장소의 LSTM
 UPC off/on 실험은 이 중 clustering의 추가 효과만 분리해 본 것이며, GECOS 전체
 성능을 재현한 실험은 아니다.
 
@@ -61,7 +61,7 @@ UPC off/on 실험은 이 중 clustering의 추가 효과만 분리해 본 것이
 | 10,000 cell로 확장 가능한가? | UPC on/off MAPE **0.1186/0.6782**, MAE **7.0632/7.1708**, 추론 **0.178초** | 대규모에서도 오차 감소와 짧은 추론 시간을 보고했다. |
 
 논문 본문의 “10,000 cell에서 약 42% MAPE 개선”이라는 설명은 Table IV의
-**0.6782 → 0.1186**과 일치하지 않는다. 이 저장소는 서로 충돌하는 서술을 임의로
+**0.6782 → 0.1186과** 일치하지 않는다. 이 저장소는 서로 충돌하는 서술을 임의로
 맞추지 않고 표의 수치와 본문을 따로 기록한다.
 
 ## 이 저장소에서 검증한 질문
@@ -86,7 +86,7 @@ UPC off/on 실험은 이 중 clustering의 추가 효과만 분리해 본 것이
 
 Validation은 early stopping과 model 선택에 사용했으며 Test는 최종 평가하지 않았다.
 따라서 아래 결과는 일반화 성능이 아니라 **동일 조건에서 clustering의 추가 효과를
-살펴본 Validation 비교**다. 자세한 입력·학습 계약은
+살펴본 Validation 비교다.** 자세한 입력·학습 계약은
 [LSTM 전체 학습 문서](docs/13-lstm-full-training.md)에 있다.
 
 ## 직접 재현한 결과와 해석
@@ -111,8 +111,8 @@ Persistence 대비 향상을 전부 clustering의 효과로 해석할 수 없다
 
 ### 2. UPC가 추가로 만든 차이는 얼마나 큰가?
 
-UPC on−off 차이는 MAE **-0.1066**, MAPE **-0.7170%p**, WAPE **-0.000385**였다.
-상대 개선은 MAE·WAPE 약 **0.38%**, MAPE 약 **6.26%**다. 세 seed의 전체 집계에서
+UPC on−off 차이는 MAE **-0.1066**, MAPE **-0.7170%p**, WAPE **-0.000385였다.**
+상대 개선은 MAE·WAPE 약 **0.38%**, MAPE 약 **6.26%다.** 세 seed의 전체 집계에서
 방향은 모두 같았지만, 절대 traffic 오차에 대한 추가 이득은 작고 비율 오차에서 더
 크게 나타났다.
 
@@ -121,7 +121,7 @@ UPC on−off 차이는 MAE **-0.1066**, MAPE **-0.7170%p**, WAPE **-0.000385**�
 
 ### 3. 어떤 cell에서 효과가 나타났을 가능성이 큰가?
 
-모든 cell-target을 합친 micro WAPE 개선은 약 **0.38%**였지만, cell마다 같은
+모든 cell-target을 합친 micro WAPE 개선은 약 **0.38%였지만**, cell마다 같은
 가중치를 주는 cell-macro WAPE는 **0.115408 → 0.111791**, 약 **3.13%** 개선됐다.
 traffic 규모가 작은 cell도 동일한 비중을 가질 때 효과가 더 커졌다는 뜻이다.
 
@@ -142,14 +142,14 @@ traffic 규모가 작은 cell도 동일한 비중을 가질 때 효과가 더 �
 - 결과는 seed 3개의 Validation 비교이고 최종 Test 결과가 아니다.
 
 따라서 이번 실험은 **누수 없이 구성한 UPC 변형이 LSTM에 작은 추가 이득을 줄 수
-있다는 근거**는 제공하지만, 논문의 UPC 수치나 GECOS 전체 성능을 재현하지는 않는다.
+있다는 근거는** 제공하지만, 논문의 UPC 수치나 GECOS 전체 성능을 재현하지는 않는다.
 
 ### 결과에서 얻은 최종 학습
 
 > 이번 재현에서 UPC는 전체 절대오차를 크게 줄이지는 않았지만, 서로 다른 traffic
 > pattern을 나눈 뒤 별도 model을 학습하는 방식이 일부 cell의 상대오차를 줄일
 > 가능성을 보여줬다. 핵심은 “UPC on의 숫자가 더 작다”가 아니라, **어떤 지표에서
-> 얼마나 좋아졌으며 그 차이를 어디까지 일반화할 수 있는지 구분하는 것**이다.
+> 얼마나 좋아졌으며 그 차이를 어디까지 일반화할 수 있는지 구분하는 것이다.**
 
 ## 불일치에서 배운 내용
 
@@ -161,7 +161,7 @@ traffic 규모가 작은 cell도 동일한 비중을 가질 때 효과가 더 �
 | Table IV 수치와 본문의 개선율이 다름 | 하위 근거의 차이를 숨기지 않고 직접 계산값과 저자 서술을 분리한다. |
 
 이 불일치는 단순한 구현 실패가 아니다. 논문, 표, 그림과 공개 코드가 다를 때
-**확인된 사실과 구현 가정을 분리해야 결과를 과장하지 않을 수 있다**는 것이 이번
+**확인된 사실과 구현 가정을 분리해야 결과를 과장하지 않을 수 있다는** 것이 이번
 재현의 중요한 학습이다.
 
 ## 재현 범위
